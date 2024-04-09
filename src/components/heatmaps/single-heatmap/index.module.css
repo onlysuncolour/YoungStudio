@@ -1,0 +1,10 @@
+.root {
+  display: block;
+  height: 400px;
+  width: 600px;
+}
+
+#heatmapContainerWrapper {
+  height: 100%;
+  width: 100%;
+}

@@ -1,0 +1,21 @@
+.container {
+  height: 100%;
+}
+
+.header {
+  position: absolute;
+  right: 0;
+  top: 2rem;
+}
+.menus {
+  display: flex;
+  flex-direction: column;
+}
+
+.menus .menu {
+  margin-right: 1rem;
+}
+
+.backToHome {
+  margin: 3rem 0 0;
+}
