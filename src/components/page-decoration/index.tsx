@@ -14,8 +14,8 @@ const ColorMap = {
 
 export default function PageDecoration() {
   const [rootStyle, setRootStyle] = useState<CSSProperties>({})
-  const [maxHeight, setMaxHeight] = useState(screen.height / 2)
-  const [maxWidth, setMaxWidth] = useState(screen.width)
+  const [maxHeight, setMaxHeight] = useState(screen ? screen?.height / 2 : 0)
+  const [maxWidth, setMaxWidth] = useState(screen?.width)
   const [items, setItems] = useState<TDecorationItem[]>([])
 
   useEffect(() => {
