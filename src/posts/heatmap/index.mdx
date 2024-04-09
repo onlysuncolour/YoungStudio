@@ -20,5 +20,131 @@ spoiler: "Here is a heatmap"
 
 <Demo1 />
 
-### 地图缩放与适配
+## API
+
+先简单介绍一下API。
+```typescript
+type heatmapProps = {
+  data: [xCoordinate: number, yCoordinate: number, value: number][];
+  mapFile?: {
+    image: string; // img url
+    imgSize: TPoint
+    coordinate: {
+      x: TPoint; // left bottom point's coordinate
+      y: TPoint; // right top point's coordinate
+    }
+  }
+  heatmapConfig?: TheatmapConfig
+  onConfigChange?: (v: TheatmapConfig) => void;
+  onPostionChange?: (v: TOnPositionChangeProp) => void;
+  localeMap?: THeatmapLocale
+  documentResizeEventKey?: string
+}
+
+type heatmapRef = {
+  handleSyncAction?: (v: THandleSyncActionProp) => void
+}
+
+type TPoint = {
+  x: number; // x coordinate or width
+  y: number; // y coordinate or height
+}
+
+type TheatmapConfig = {
+  opacity?: number; // default 100
+  radius?: number; // heatmap data point radius, default to 20
+  theme?: number; // default to 0
+}
+
+type TOnPositionChangeProp = {
+  scale: number
+  bgP: {
+    x: TPoint;
+    y: TPoint;
+  }
+}
+
+type THeatmapLocale = {
+  opacity?: string;
+  radius?: string;
+  colorTheme?: string;
+  reset?: string;
+  zoomOut?: string;
+  zoomIn?: string;
+  setting?: string;
+}
+
+type THandleSyncActionProp = {
+  scale: number
+  bgP: {
+    x: TPoint;
+    y: TPoint;
+  }
+}
+
+```
+
+#### data
+
+完全同[partric的heatmapjs库](https://www.patrick-wied.at/static/heatmapjs/)，[横坐标，纵坐标，值]的一个数组。
+
+#### mapFile
+
+如果不传地图文件url的话，将会默认是一张透明图片。
+
+参数中的地图文件的像素大小imgSize用于地图的适配与缩放，之后可以优化成在代码中获取地图的实际像素尺寸。
+
+参数中的坐标coordinate里面的x和y分别是左下角和右上角的坐标值，用于放置热力数据。
+
+
+#### heatmapConfig
+
+热力图的一些配置，比如不透明度、热力半径、颜色主题等。
+
+#### onConfigChange
+
+该方法将会在热力图配置被修改时被调用。
+
+#### onPostionChange
+
+该方法将会在用户缩放地图、拖动地图时调用，参数是缩放大小及中心位置。
+
+#### localeMap
+
+一般用于i18n，即国际化文案。
+
+#### documentResizeEventKey
+
+挂载在document上的eventKey，外层写法类似如下
+```javascript
+  document.dispatchEvent(documentResizeEventKey)
+```
+当如此执行时，将会触发热力图因为页面缩放而进行的重新绘制。
+
+#### Ref - handleSyncAction
+
+一般用于在多个热力图之间同步缩放拖拽动作。
+
+
+## 地图缩放与适配
+
+#### 适配
+
+热力图首先要保证在初始情况下地图能够完整的展示出来，以及按照原有的比例进行展示。
+
+按照这个思路，其实可供选择的方案是不多的，
+
+一个是 **background-size: contain;** 。
+
+另一个则是，去计算图片尺寸长高与容器长高的比例，根据比例设置成 **background-size: auto 100%;**，比值大的为 **100%**。
+
+考虑到要兼容地图放大情况下的backgroundSize，我在此处选择的是第二个方案。
+
+
+#### 缩放
+
+依着适配的思路，这边就可以直接去选用**background-size: auto 200%;**。
+
+
+## 地图拖拽
 

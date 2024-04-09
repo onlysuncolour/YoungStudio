@@ -12,11 +12,11 @@ export function readingTime(wordsCount: number) {
 }
 
 export function getRandom(e: number, t: number) {
-  return e + Math.floor(Math.random() * (t - e + 1))
+  return e + (Math.random() * (t - e + 1))
 }
 
 export function getRandom3(e: number, t: number) {
-  return e + Math.floor((1 - Math.random() ** 3) * (t - e + 1))
+  return e + ((1 - Math.random() ** 3) * (t - e + 1))
 }
 
 

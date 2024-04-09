@@ -14,14 +14,17 @@ const ColorMap = {
 
 export default function PageDecoration() {
   const [rootStyle, setRootStyle] = useState<CSSProperties>({})
-  const [maxHeight, setMaxHeight] = useState(screen ? screen?.height / 2 : 0)
-  const [maxWidth, setMaxWidth] = useState(screen?.width)
+  const [maxHeight, setMaxHeight] = useState(0)
+  const [maxWidth, setMaxWidth] = useState(0)
   const [items, setItems] = useState<TDecorationItem[]>([])
 
   useEffect(() => {
+    var html = document.getElementsByTagName('html')[0]
+    setMaxWidth(html.offsetWidth)
+    setMaxHeight(html.offsetHeight / 2)
     function handleWindowResize() {
-      setMaxWidth(screen.width)
-      setMaxHeight(screen.height / 2)
+      setMaxWidth(html.offsetWidth)
+      setMaxHeight(html.offsetHeight / 2)
     }
     window.addEventListener('resize', handleWindowResize)
     return () => {
@@ -35,18 +38,16 @@ export default function PageDecoration() {
 
   useEffect(() => {
     setRootStyle({
-      height: maxHeight
+      height: maxHeight,
+      width: maxWidth
     })
     if (maxHeight === 0) {
       setItems([])
     } else {
       const maxRadius = maxHeight / 10, minRadius = maxHeight / 20;
       const p = (maxWidth ** 3) / maxHeight
-      setItems(Array.from({length: 400}).map(_ => {
-        let radius = getRandom(minRadius, maxRadius), right = getRandom3(-radius, maxWidth), maxTop = (right ** 3) / p, top = getRandom(-radius, maxTop);
-        console.log({
-          right, top, p
-        })
+      setItems(Array.from({length: 500}).map(_ => {
+        let radius = getRandom(minRadius, maxRadius), right = getRandom3(-radius/2, maxWidth), maxTop = (right ** 3) / p, top = getRandom(-radius/2, maxTop);
         return {
           right,
           top,
@@ -55,7 +56,7 @@ export default function PageDecoration() {
       }))
     }
 
-  }, [maxHeight])
+  }, [maxHeight, maxWidth])
 
   return <div className={styles.root} style={rootStyle} >
     {
