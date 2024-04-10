@@ -136,7 +136,7 @@ type THandleSyncActionProp = {
 
 一个是 **background-size: contain;** 。
 
-另一个则是，去计算图片尺寸长高与容器长高的比例，根据比例设置成 **background-size: auto 100%;**，比值大的为 **100%**。
+另一个则是，去计算图片尺寸宽高与容器宽高的比例，根据比例设置成 **background-size: auto 100%;**，比值大的为 **100%**。
 
 考虑到要兼容地图放大情况下的backgroundSize，我在此处选择的是第二个方案。
 
@@ -165,4 +165,102 @@ newPositionX = // 新的position值
 ## 数据填入
 
 数据填入是整个实现中最麻烦的地方。因为地图的缩放、拖拽与热力库是不同的实现，当前视窗下的数据范围，就需要自己去根据**缩放、背景位置、地图坐标、地图大小**等去计算出来。
+
+#### 未进行缩放时的数据填入
+
+由于背景图片的宽高比例和容器的宽高比例基本不可能一致，背景上也就会在上传的地图图片两侧有透明层（默认背景色）。
+
+但是对于[heatmapjs库](https://www.patrick-wied.at/static/heatmapjs/)来说，所有的背景区域，包括透明层，都算作热力图区域。
+
+此处就需要进行一次数据映射，即地图大小(图片宽高)与热力图坐标(容器宽高)的数据映射。
+
+这里首先定义了一个变量 **scale0Size**，意为在当前容器宽高、缩放为0的情况下，地图图片在容器内的宽高，以及与容器宽高比例较大的那一边(宽或高)。该变量取值如下
+
+```typescript
+function getScale0Value(containerSize: TPoint, imageSize: TPoint) {
+  const ratioW = imageSize.x / containerSize.x;
+  const ratioH = imageSize.y / containerSize.y;
+  let scale = Math.max(ratioW, ratioH);
+  let autoW = ratioW < ratioH;
+
+  return {
+    x: !autoW ? containerSize.x : imageSize.x / scale,
+    y: !autoW ? imageSize.y / scale : containerSize.y,
+    xFlag: autoW, // 比例较大的是否为宽
+  };
+}
+```
+
+以及与之类似的，获得未占满轴的那个边的实际长度。如下代码中已经带有后续逻辑中的缩放倍数。
+```typescript
+function getUnfilledAxis(
+  scaleValue: number,
+  containerSize: TPoint,
+  imageScale0Value: TPoint,
+  xFlag: boolean,
+): {
+  unfilledLength: number;
+} | null {
+  if (
+    imageScale0Value.x * 2 ** (scaleValue - 1) > containerSize.x &&
+    imageScale0Value.y * 2 ** (scaleValue - 1) > containerSize.y
+  ) {
+    return null;
+  }
+  const unfilledLength = xFlag
+    ? imageScale0Value.x * 2 ** (scaleValue - 1)
+    : imageScale0Value.y * 2 ** (scaleValue - 1);
+
+  return {
+    unfilledLength,
+  };
+}
+```
+
+然后就可以去热力图**实际的地图区域**及**数据范围**。
+
+**实际的地图区域**指的是，假如容器宽高为 400,400，地图图片在容器内的宽高为 200,400，则实际的地图区域为 [100, 0],[300, 400]。  
+**数据范围**则是由于用户给定的数据集合的横纵坐标可能超出设定的地图最大最小横纵坐标，该范围可以在此时计算出来。  
+具体的实现大概如下
+
+```typescript
+function getRange() {
+  const container = getContainerSize();
+  const unfillLineResult = getUnfilledAxis(
+    scaleLatest.current,
+    container,
+    scale0Size,
+    scale0Size.xFlag,
+  );
+  if (!unfillLineResult) {
+    return;
+  }
+  // unfilledLength 即为 没有占满轴的 那条边 的实际长度
+  const { unfilledLength } = unfillLineResult;
+
+  let p1: TPoint = { x: 0, y: 0 },
+    p2: TPoint = { x: container.x, y: container.y };
+
+  // offset 为 偏移量
+  const offset = xFlag
+    ? (backgroundPositionLatest.current.x / 100) * (container.x - unfilledLength)
+    : (backgroundPositionLatest.current.y / 100) * (container.y - unfilledLength);
+
+  if (xFlag) {
+    p1.x = 0 + offset;
+    p2.x = unfilledLength + offset;
+  } else {
+    p1.y = 0 + offset;
+    p2.y = unfilledLength + offset;
+  }
+
+  setDisplayRange({ p1, p2 });
+  setDataRange({
+    p1: { x: coordinate.p1.x, y: coordinate.p1.y },
+    p2: { x: coordinate.p2.x, y: coordinate.p2.y },
+  });
+}
+```
+
+
 
