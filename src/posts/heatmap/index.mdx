@@ -148,4 +148,21 @@ type THandleSyncActionProp = {
 
 ## 地图拖拽
 
-something
+地图拖拽是基于监听背景为地图的容器的**mousemove**事件，根据事件的**clientX, clientY**及记录的上一次位置信息，修改容器的**backgroundPosition**。
+
+当**mousedown**被触发时，标记拖拽开始，并且记录鼠标初始位置信息及当前容器的**backgroundPosition**
+
+**mousemove**被触发时，新的位置计算方法类似如下
+```typescript
+newPositionX = // 新的position值
+  oldPositionX + // 旧的position值
+  ((oldClientX - event.clientX) /* 鼠标移动路径 */  /4 /* 控制移动速度 */ / containerSize.width /* 相对容器宽度的百分比 */ ) * 100;
+```
+
+当**mouseup, mouseout**被触发时，标记拖拽结束。
+
+
+## 数据填入
+
+数据填入是整个实现中最麻烦的地方。因为地图的缩放、拖拽与热力库是不同的实现，当前视窗下的数据范围，就需要自己去根据**缩放、背景位置、地图坐标、地图大小**等去计算出来。
+
