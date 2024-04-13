@@ -1,0 +1,145 @@
+---
+title: "开发过程中如何在多个环境中优雅的切换"
+date: "2024-04-13"
+spoiler: "在开发、调试时，经常会遇到从开发环境切换到另一个开发环境、或是生产环境。如何在不重启本地部署下完成这件事呢？"
+---
+
+## 背景
+
+最近我又接了好多需求，每个需求有对应着不同的后端，也对应着不同的开发/测试/预发环境。
+
+同时吧，我还有几个线上bug需要修复，有个是需要连接我们saas，其他的还需要去连接客户的环境。
+
+每次切换环境都需要修改一下webpack配置里的proxy，然后重新启动，好麻烦呀。
+
+怎么简单又优雅的去切换环境呢？
+
+
+## webpack 的 proxy
+
+首先，我们需要了解 webpack 的proxy 是如何工作的。
+
+webpack的proxy，本质上是一个[webpack的plugin](https://webpack.js.org/concepts/plugins/)，在配置中有devServer.proxy时，就会加载HttpUriPlugin。  
+有请求接入就会经过HttpUriPlugin，进行代理转发，或是直接请求。
+
+## 所以，假使
+
+我们有这样一个**plugin**，
+
+这个**plugin**在接收到一个特定请求时，比如 **http://localhost:8000/proxyUpdate?target=google.com**，  
+他就会将**proxy**的**target**重新设定为**google.com**，  
+
+这个plugin在接收到一系列带有特殊开头的请求时，比如 **http://localhost:8000/api/where-are-you-from**时，  
+他就会将这一系列请求转发给之前设定的那个**host**，
+
+对于其他的请求，比如 **http://localhost:8000/a74bvf34.js**，则会直接请求不进行转发。
+
+看上去，除了重新设定target，其他的都与proxy完全一致呀。
+
+## 实现
+
+对于webpack的话，有两种实现方法，写一个plugin，或是写一个middleware。
+
+察看二者API，会发现，middleware不就是跟express的middleware完全一样的吗～
+
+here I choose middleware way.
+
+首先，先翻看一下webpack关于[middleware的API](https://webpack.js.org/configuration/dev-server/#devserversetupmiddlewares)，具体代码如下
+
+```javascript
+module.exports = {
+  // ...
+  devServer: {
+    setupMiddlewares: (middlewares, devServer) => {
+      if (!devServer) {
+        throw new Error('webpack-dev-server is not defined');
+      }
+
+      devServer.app.get('/setup-middleware/some/path', (_, response) => {
+        response.send('setup-middlewares option GET');
+      });
+
+      // Use the `unshift` method if you want to run a middleware before all other middlewares
+      // or when you are migrating from the `onBeforeSetupMiddleware` option
+      middlewares.unshift({
+        name: 'first-in-array',
+        // `path` is optional
+        path: '/foo/path',
+        middleware: (req, res) => {
+          res.send('Foo!');
+        },
+      });
+
+      // Use the `push` method if you want to run a middleware after all other middlewares
+      // or when you are migrating from the `onAfterSetupMiddleware` option
+      middlewares.push({
+        name: 'hello-world-test-one',
+        // `path` is optional
+        path: '/foo/bar',
+        middleware: (req, res) => {
+          res.send('Foo Bar!');
+        },
+      });
+
+      middlewares.push((req, res) => {
+        res.send('Hello World!');
+      });
+
+      return middlewares;
+    },
+  },
+};
+```
+
+根据官方API，可以轻松写出来关于切换target(实际上是修改一个变量)的middleware
+
+```javascript
+middlewares.unshift({
+  name: 'proxy-update',
+  path: '/proxyUpdate',
+  middleware: (req, res) => {
+     process.env.PROXY_UPDATE_URL = req.query.target;
+  },
+});
+```
+
+那，proxy的middleware该怎么写呢？  
+可以自己完全重写，类似于上面，不过要考虑很多方面，比如说changeOrigin，useWs等等。  
+这边给大家推荐一个npm库[http-proxy-middleware](https://www.npmjs.com/package/http-proxy-middleware)，里面的**createProxyMiddleware**可以很轻松地帮我们解决这些小问题啦。
+
+代码可以参考如下
+
+```javascript
+const proxyMiddleware: any = createProxyMiddleware('/api', {
+  target: '/',
+  changeOrigin: true,
+  ws: true,
+  router: () => {
+    return process.env.PROXY_UPDATE_URL!;
+  },
+});
+
+middlewares.push(proxyMiddleware);
+```
+
+如此一来，只需要访问 **http://localhost:8000/proxyUpdate?target=google.com** 就可以切换代理host啦～～～
+
+## 更多
+
+在实践中，我们新建了一个chrome extension 插件。  
+在这个插件里，我们可以随时和平台方同步各个环境的数据(host, username, password, token)，以及自己可以去修改、添加一些其他环境、账号信息，并且同步给平台。  
+
+
+我们的登录信息是保存在本地localstorage的，在插件中具体流程是  
+
+
+**如果当前页面是本地开发环境的话**
+* 请求登陆接口获取token
+* 写入localstorage
+* 切换proxy target
+* 刷新页面(当前为登陆页面则重定向到首页)  
+
+
+**如果非本地开发环境**
+* 请求登陆接口获取token
+* 打开新页面，url为该环境的首页url，并且带有登陆参数
