@@ -1,0 +1,12 @@
+.root {
+  display: block;
+}
+
+.warning {
+  margin: 4rem;
+  width: 100%;
+  text-align: center;
+  color: #a0a0a0;
+  font-size: 32px;
+  font-weight: bold;
+}

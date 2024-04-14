@@ -13,7 +13,6 @@ const ColorMap = {
 }
 
 export default function PageDecoration() {
-  const [rootStyle, setRootStyle] = useState<CSSProperties>({})
   const [maxHeight, setMaxHeight] = useState(0)
   const [maxWidth, setMaxWidth] = useState(0)
   const [items, setItems] = useState<TDecorationItem[]>([])
@@ -22,6 +21,7 @@ export default function PageDecoration() {
     var html = document.getElementsByTagName('html')[0]
     setMaxWidth(html.offsetWidth)
     setMaxHeight(html.offsetHeight / 2)
+
     function handleWindowResize() {
       setMaxWidth(html.offsetWidth)
       setMaxHeight(html.offsetHeight / 2)
@@ -32,15 +32,7 @@ export default function PageDecoration() {
     }
   }, [])
 
-  // useEffect(() => {
-  //   setMaxHeight(Math.sqrt(maxWidth));
-  // }, [maxWidth])
-
   useEffect(() => {
-    setRootStyle({
-      height: maxHeight,
-      width: maxWidth
-    })
     if (maxHeight === 0) {
       setItems([])
     } else {
@@ -58,7 +50,7 @@ export default function PageDecoration() {
 
   }, [maxHeight, maxWidth])
 
-  return <div className={styles.root} style={rootStyle} >
+  return <div className={styles.root}>
     {
       items.map(({right, top, radius}, i) => <DecorationItem right={right} top={top} radius={radius} key={i} />)
     }
