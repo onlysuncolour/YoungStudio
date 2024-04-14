@@ -20,10 +20,16 @@ export default function Layout({ children }: Readonly<{
           className={styles.logo}
         /> */}
         <div className={styles.menus}>
-          <Link className={styles.menu} href="/">Home</Link>
-          <Link className={styles.menu} href="/posts">Posts</Link>
-          <Link className={styles.menu} href="/notes">Notes</Link>
-          <Link className={styles.menu} href="/about">About</Link>
+          <Link className={styles.menu} href="/">
+            <span  className={styles.menuSpan}>Home</span></Link>
+          <Link className={styles.menu} href="/posts">
+            <span  className={styles.menuSpan}>Posts</span></Link>
+          <Link className={styles.menu} href="/notes">
+            <span  className={styles.menuSpan}>Notes</span></Link>
+          <Link className={styles.menu} href="/leetcodes">
+            <span  className={styles.menuSpan}>Leetcodes</span></Link>
+          <Link className={styles.menu} href="/about">
+            <span  className={styles.menuSpan}>About</span></Link>
         </div>
       </header>
       {children}

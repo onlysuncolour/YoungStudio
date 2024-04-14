@@ -4,10 +4,19 @@ import matter from "gray-matter";
 import { pinyin } from "pinyin-pro";
 import { isChinese } from "@/utils";
 
-const postDirectory = path.join(process.cwd(), "src", "posts");
+type DocType = 'post' | 'note' | 'leetcode'
+
+const postsDirectory = path.join(process.cwd(), "src", "posts");
 const notesDirectory = path.join(process.cwd(), "src", "notes");
-export const getAllDocsMeta = async (type: string) => {
-  const rootDirectory = type === 'post' ? postDirectory : notesDirectory
+const leetcodesDirectory = path.join(process.cwd(), "src", "leetcodes");
+
+const directoryMap = {
+  post: postsDirectory,
+  note: notesDirectory,
+  leetcode: leetcodesDirectory
+}
+export const getAllDocsMeta = async (type: DocType) => {
+  const rootDirectory = directoryMap[type];
   // 获取到src/posts/下所有文件
   const dirs = fs
     .readdirSync(rootDirectory, { withFileTypes: true })
@@ -29,9 +38,9 @@ export const getAllDocsMeta = async (type: string) => {
   return datas;
 };
 
-export const getDocBySlug = async (dir: string, type: string) => {
+export const getDocBySlug = async (dir: string, type: DocType) => {
 
-  const rootDirectory = type === 'post' ? postDirectory : notesDirectory
+  const rootDirectory = directoryMap[type]
   const filePath = path.join(rootDirectory, dir, "/index.mdx");
 
   const fileContent = fs.readFileSync(filePath, { encoding: "utf8" });
@@ -53,7 +62,7 @@ export const getDocBySlug = async (dir: string, type: string) => {
   } as PostDetail;
 };
 
-export async function getDoc(slug: string, type: string) {
+export async function getDoc(slug: string, type: DocType) {
   const posts = await getAllDocsMeta(type);
   if (!slug) throw new Error("not found");
   const post = posts.find((post) => post.meta.slug === slug);

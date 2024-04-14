@@ -139,6 +139,6 @@
   padding-right: 1em;
 }
 
-.markdown ol {
+.markdown ol, .markdown ul {
   margin-left: 24px;
 }

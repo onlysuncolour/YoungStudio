@@ -14,7 +14,16 @@
 }
 
 .menus .menu {
-  margin-right: 1rem;
+  margin-right: 2rem;
+  margin-bottom: 0.3rem;
+}
+
+.menuSpan {
+  border-bottom: 1px solid transparent;
+}
+
+.menuSpan:hover {
+  border-bottom: 1px solid #000;
 }
 
 .backToHome {
