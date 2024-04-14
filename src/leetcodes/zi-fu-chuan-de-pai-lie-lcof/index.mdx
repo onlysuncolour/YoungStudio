@@ -1,0 +1,57 @@
+---
+title: "套餐内商品的排列顺序"
+date: "2021-07-03"
+spoiler: "LCR157 中等"
+---
+
+[leetcode-套餐内商品的排列顺序](https://leetcode.cn/problems/zi-fu-chuan-de-pai-lie-lcof/description/)
+
+## 题目描述
+
+某店铺将用于组成套餐的商品记作字符串 goods，其中 goods[i] 表示对应商品。请返回该套餐内所含商品的 全部排列方式 。  
+  
+返回结果 无顺序要求，但不能含有重复的元素。  
+  
+   
+  
+示例 1:  
+  
+输入：goods = "agew"  
+输出：["aegw","aewg","agew","agwe","aweg","awge","eagw","eawg","egaw","egwa","ewag","ewga","gaew","gawe","geaw","gewa","gwae","gwea","waeg","wage","weag","wega","wgae","wgea"]  
+   
+  
+提示：  
+  
+1 \<= goods.length \<= 8  
+
+## 本人题解
+
+```javascript
+/**
+ * @param {string} s
+ * @return {string[]}
+ */
+var permutation = function(s) {
+    let result = [];
+    function p (str, res = '') {
+        if (str.length > 0) {
+            str.forEach((s, index) => {
+                let strCopy = [...str];
+                let added = res + s;
+                strCopy.splice(index, 1);
+                p(strCopy, added)
+            })
+        } else {
+            if (result.indexOf(res) == -1) {
+                result.push(res)
+            }
+        }
+    }
+    p(s.split(''))
+    return result
+};
+```
+
+## 分析
+
+忘了。以后再补

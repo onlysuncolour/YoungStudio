@@ -1,0 +1,137 @@
+---
+title: "乐队站位"
+date: "2021-07-01"
+spoiler: "LCP29 中等"
+---
+
+[leetcode-乐队站位](https://leetcode.cn/problems/SNJvJP/description/)
+
+## 题目描述
+
+某乐团的演出场地可视作 num * num 的二维矩阵 grid（左上角坐标为 [0,0])，每个位置站有一位成员。乐团共有 9 种乐器，乐器编号为 1~9，每位成员持有 1 个乐器。  
+  
+为保证声乐混合效果，成员站位规则为：自 grid 左上角开始顺时针螺旋形向内循环以 1，2，...，9 循环重复排列。例如当 num = 5 时，站位如图所示  
+  
+image.png  
+  
+请返回位于场地坐标 [Xpos,Ypos] 的成员所持乐器编号。  
+  
+示例 1：  
+  
+输入：num = 3, Xpos = 0, Ypos = 2  
+  
+输出：3  
+  
+  
+示例 2：  
+  
+输入：num = 4, Xpos = 1, Ypos = 2  
+  
+输出：5  
+  
+  
+提示：  
+* 1 \<= num \<= 10<sup>9</sup>  
+* 0 \<= Xpos, Ypos \< num  
+
+## 本人题解
+
+```javascript
+/**
+ * @param {number} num
+ * @param {number} xPos
+ * @param {number} yPos
+ * @return {number}
+ */
+ var orchestraLayout = function(num, xPos, yPos) {
+    let 
+        count = 0,
+        g = {
+            w: num, h: num
+        }
+    let xT = xPos, xB = num-xPos-1, yL = yPos, yR = num-1-yPos;
+    let short = [xT, xB, yL, yR].sort((a,b) => a-b).shift();
+    if (short == 1) {
+        count += num*4 - 4
+    } else if (short != 0) {
+        count += ( ((num * 4 - 4) + ((num - 2 * (short-1)) * 4 - 4)) ) * ( short % 9) / 2
+        // console.log('count', count)
+        count = count % 9
+    }
+    g.w -= 2 * short
+    g.h -= 2 * short
+    let curL = short,
+        curC = short,
+        maxL = num - short - 1,
+        maxC = num - short - 1,
+        dir = 1; // 1 : first line from left to right, 2: right column from top to bottom, 3: bottom line from right to left, 4: left column from bottom to top
+    // console.log('xPos', xPos, 'yPos', yPos, 'num', num)
+    // console.log('curL', curL, 'curC', curC, 'short', short)
+    // console.log('maxL', maxL, 'maxC', maxC, 'width', g.w)
+    while (checkCurLorC()) {
+        goNext()
+    }
+    // console.log('count', count)
+    // console.log('curl:', curL, 'curC:', curC, "maxL:", maxL, "maxC:", maxC, "count:", count, count%9, "dir:", dir)
+    switch(dir) {
+        case 1:
+            count += (yPos-curC + 1)
+            break;
+        case 2:
+            count += (xPos - curL + 1)
+            break;
+        case 3:
+            count += (maxC - yPos + 1)
+            break;
+        case 4:
+            count += (maxL - xPos + 1)
+            break;
+    }
+    // console.log('count', count)
+    function checkCurLorC() {
+        if (curL == xPos && dir == 1) {
+            return false
+        } else if (curC == yPos && dir == 4) {
+            return false
+        } else if (maxL == xPos && dir == 3) {
+            return false
+        } else if (maxC == yPos && dir == 2) {
+            return false
+        }
+        return true
+    }
+    function goNext() {
+        switch (dir) {
+            case 1:
+                count += g.w;
+                g.h--
+                curL++;
+                dir++
+                break;
+            case 2:
+                count += g.h
+                g.w --
+                maxC--;
+                dir++
+                break;
+            case 3:
+                count += g.w
+                g.h --
+                maxL--;
+                dir++
+                break;
+            case 4:
+                count += g.h
+                g.w --
+                curC++
+                dir=1
+                break;
+        }
+    }
+    return count % 9 || 9
+};
+```
+
+## 分析
+
+忘了。以后再补

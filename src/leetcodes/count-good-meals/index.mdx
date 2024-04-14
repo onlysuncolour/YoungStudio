@@ -1,0 +1,93 @@
+---
+title: "大餐计数"
+date: "2021-06-28"
+spoiler: "1711 中等"
+---
+
+[leetcode-大餐计数](https://leetcode.cn/problems/count-good-meals/description/)
+
+## 题目描述
+
+大餐 是指 恰好包含两道不同餐品 的一餐，其美味程度之和等于 2 的幂。  
+  
+你可以搭配 任意 两道餐品做一顿大餐。  
+  
+给你一个整数数组 deliciousness ，其中 deliciousness[i] 是第 i​​​​​​​​​​​​​​ 道餐品的美味程度，返回你可以用数组中的餐品做出的不同 大餐 的数量。结果需要对 109 + 7 取余。  
+  
+注意，只要餐品下标不同，就可以认为是不同的餐品，即便它们的美味程度相同。  
+  
+   
+  
+示例 1：  
+  
+输入：deliciousness = [1,3,5,7,9]  
+输出：4  
+解释：大餐的美味程度组合为 (1,3) 、(1,7) 、(3,5) 和 (7,9) 。  
+它们各自的美味程度之和分别为 4 、8 、8 和 16 ，都是 2 的幂。  
+示例 2：  
+  
+输入：deliciousness = [1,1,1,3,3,3,7]  
+输出：15  
+解释：大餐的美味程度组合为 3 种 (1,1) ，9 种 (1,3) ，和 3 种 (1,7) 。  
+   
+  
+提示：  
+  
+* 1 \<= deliciousness.length \<= 10<sup>5</sup>  
+* 0 \<= deliciousness[i] \<= 2<sup>20</sup>  
+
+## 本人题解
+
+```javascript
+
+/**
+ * @param {number[]} deArr
+ * @return {number}
+ */
+var countPairs = function(deArr) {
+   let deObj = {}
+   deArr = deArr.filter((d, i, arr) => {
+       deObj[d] = deObj[d] || {c: 0, p: []}
+       deObj[d].c ++
+        return arr.indexOf(d) == i
+   })
+   function buildMi (arr) {
+       for (let outer = 0; outer < arr.length; outer++) {
+           const outerN = arr[outer];
+           let next = parseInt(1 + outerN.toString(2).replaceAll('1', 0), 2) - outerN
+           if (next == outerN && deObj[0]) {
+               deObj[outerN].p.push(0)
+           }
+           if (deObj[next]) {
+            deObj[outerN].p.push(next)
+           }
+       }
+   }
+   if (deObj[0]) {
+    deArr.splice(deArr.indexOf(0), 1)  
+    deObj[0].p.push(0)
+   }
+   buildMi(deArr)
+//    console.log(deObj)
+   let count = 0
+   deArr.forEach(n => {
+       let d = deObj[n]
+       if (d.p.length > 0) {
+           d.p.forEach(p => {
+               if (n == p) {
+                   if (d.c > 1) {
+                       count += d.c*(d.c-1)/2
+                   }
+               } else {
+                   count += d.c * deObj[p].c
+               }
+           })
+       }
+   })
+   return count%1000000007
+};
+```
+
+## 分析
+
+忘了。以后再补
