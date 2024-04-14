@@ -1,0 +1,95 @@
+---
+title: "N皇后 II"
+date: "2021-07-03"
+spoiler: "52 困难"
+---
+
+[leetcode-N皇后2](https://leetcode.cn/problems/n-queens-ii/description/)
+
+## 题目描述
+
+n 皇后问题 研究的是如何将 n 个皇后放置在 n × n 的棋盘上，并且使皇后彼此之间不能相互攻击。  
+  
+给你一个整数 n ，返回 n 皇后问题 不同的解决方案的数量。  
+  
+   
+  
+示例 1：  
+  
+  
+输入：n = 4  
+输出：2  
+解释：如上图所示，4 皇后问题存在两个不同的解法。  
+示例 2：  
+  
+输入：n = 1  
+输出：1  
+   
+  
+提示：  
+  
+* 1 \<= n \<= 9  
+
+## 本人题解
+
+```javascript
+/**
+ * @param {number} n
+ * @return {number}
+ */
+var totalNQueens = function(n) {
+  var totalCount = gets([], n);
+  return totalCount;
+}
+
+var getAvailableTargets = function(arr, n) {
+  var targetX = arr.length, availableTargetsY = [];
+  if (arr.length == 0) {
+    for (var i = 0; i < n; i++) {
+      availableTargetsY.push(i)
+    }
+    return availableTargetsY;
+  }
+  for (var k = 0; k < n; k++) {
+    var isAvail = true
+    for (var j = 0; j < arr.length; j++) {
+      if(arr[j] != k  && j + arr[j] != targetX + k && j - targetX != arr[j] - k && j - targetX != k - arr[j] ) {
+        continue;
+      } else {
+        isAvail = false;
+        break;
+      }
+    }
+    if (isAvail) {
+      availableTargetsY.push(k);
+    }
+  }
+  if (availableTargetsY.length == 0) {
+    return false;
+  } else {
+    return availableTargetsY;
+  }
+}
+
+var gets = function(arr, n) {
+  var count = 0;
+  if (arr.length === n) {
+    return 1;
+  } else {
+    var nexts = getAvailableTargets(arr, n);
+    if (!!nexts) {
+      for (var i = 0; i < nexts.length; i++) {
+        var nextArr = arr.concat(nexts[i])
+        count += gets(nextArr, n)
+      }
+      return count;
+    } else {
+      return count;
+    }
+  }
+}
+```
+
+## 分析
+
+忘了。以后再补

@@ -1,0 +1,75 @@
+---
+title: "排列序列"
+date: "2021-07-06"
+spoiler: "60 困难"
+---
+
+[leetcode-排列序列](https://leetcode.cn/problems/permutation-sequence/description/)
+
+## 题目描述
+给出集合 [1,2,3,...,n]，其所有元素共有 n! 种排列。  
+  
+按大小顺序列出所有排列情况，并一一标记，当 n = 3 时, 所有排列如下：  
+  
+"123"  
+"132"  
+"213"  
+"231"  
+"312"  
+"321"  
+给定 n 和 k，返回第 k 个排列。  
+  
+   
+  
+示例 1：  
+  
+输入：n = 3, k = 3  
+输出："213"  
+示例 2：  
+  
+输入：n = 4, k = 9  
+输出："2314"  
+示例 3：  
+  
+输入：n = 3, k = 1  
+输出："123"  
+   
+  
+提示：  
+  
+* 1 \<= n \<= 9  
+* 1 \<= k \<= n!  
+
+## 本人题解
+
+```javascript
+/**
+ * @param {number} n
+ * @param {number} k
+ * @return {string}
+ */
+var getPermutation = function(n, k) {
+  let arr = [1,2,3,4,5,6,7,8,9],
+      m1 = 1, m2 = m1*2, m3 = m2*3, m4 = m3*4,
+      m5 = m4*5, m6 = m5*6, m7 = m6*7, m8 = m7*8,
+      m9 = m8*9, mMap = [m1, m2, m3, m4, m5, m6, m7, m8, m9];
+  let result = '';
+  while (n > 0) {
+    if(n == 1) {
+      result = result + arr[n-1]
+      n--
+    } else {
+      let index = Math.floor((k-1)/mMap[n-2]);
+      let num = arr.splice(index, 1);
+      result = result + num[0]
+      k = ((k-1) % mMap[n-2]) + 1
+      n--;
+    }
+  }
+  return result;
+};
+```
+
+## 分析
+
+忘了。以后再补
