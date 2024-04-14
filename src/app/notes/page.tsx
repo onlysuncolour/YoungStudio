@@ -2,7 +2,7 @@ import { getAllDocsMeta } from "@/services/post";
 import Link from "next/link";
 import styles from './page.module.css'
 export default async function Posts() {
-  const posts = await getAllDocsMeta('post');
+  const posts = await getAllDocsMeta('note');
 
   return <div className={styles.root}>
     {
@@ -11,7 +11,7 @@ export default async function Posts() {
           className={styles.post}
           // className="block scale-100 py-4 hover:scale-[1.005] active:scale-100"
           key={post.meta.id}
-          href={"/posts/" + post.meta.slug + "/"}
+          href={"/notes/" + post.meta.slug + "/"}
         >
           <article>
             {/* <PostTitle post={item} /> */}

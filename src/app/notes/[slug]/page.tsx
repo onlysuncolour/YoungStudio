@@ -1,7 +1,7 @@
 import { getAllDocsMeta, getDoc } from "@/services/post";
 import MyMdx from "@/components/my-mdx";
 export async function generateStaticParams() {
-  const metas = await getAllDocsMeta('post');
+  const metas = await getAllDocsMeta('note');
   return metas.map((post) => {
     return { slug: post.meta.slug };
   });
@@ -12,11 +12,11 @@ export default async function PostPage({
 }: {
   params: { slug: string };
 }) {
-  const post = await getDoc(params.slug, 'post');
+  const post = await getDoc(params.slug, 'note');
   let postComponents = {};
   try {
     postComponents = await import(
-      "../../../posts/" + params.slug + "/components.ts"
+      "../../../notes/" + params.slug + "/components.ts"
     );
   } catch (e: any) {
     if (!e || e.code !== "MODULE_NOT_FOUND") {

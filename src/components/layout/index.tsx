@@ -22,6 +22,7 @@ export default function Layout({ children }: Readonly<{
         <div className={styles.menus}>
           <Link className={styles.menu} href="/">Home</Link>
           <Link className={styles.menu} href="/posts">Posts</Link>
+          <Link className={styles.menu} href="/notes">Notes</Link>
           <Link className={styles.menu} href="/about">About</Link>
         </div>
       </header>

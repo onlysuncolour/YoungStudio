@@ -4,9 +4,10 @@ import matter from "gray-matter";
 import { pinyin } from "pinyin-pro";
 import { isChinese } from "@/utils";
 
-const rootDirectory = path.join(process.cwd(), "src", "posts");
-
-export const getAllPostsMeta = async () => {
+const postDirectory = path.join(process.cwd(), "src", "posts");
+const notesDirectory = path.join(process.cwd(), "src", "notes");
+export const getAllDocsMeta = async (type: string) => {
+  const rootDirectory = type === 'post' ? postDirectory : notesDirectory
   // 获取到src/posts/下所有文件
   const dirs = fs
     .readdirSync(rootDirectory, { withFileTypes: true })
@@ -16,7 +17,7 @@ export const getAllPostsMeta = async () => {
   // 解析文章数据，拿到标题、日期、简介
   let datas = await Promise.all(
     dirs.map(async (dir) => {
-      const { meta, content } = await getPostBySlug(dir);
+      const { meta, content } = await getDocBySlug(dir, type);
       return { meta, content };
     }),
   );
@@ -28,7 +29,9 @@ export const getAllPostsMeta = async () => {
   return datas;
 };
 
-export const getPostBySlug = async (dir: string) => {
+export const getDocBySlug = async (dir: string, type: string) => {
+
+  const rootDirectory = type === 'post' ? postDirectory : notesDirectory
   const filePath = path.join(rootDirectory, dir, "/index.mdx");
 
   const fileContent = fs.readFileSync(filePath, { encoding: "utf8" });
@@ -50,8 +53,8 @@ export const getPostBySlug = async (dir: string) => {
   } as PostDetail;
 };
 
-export async function getPost(slug: string) {
-  const posts = await getAllPostsMeta();
+export async function getDoc(slug: string, type: string) {
+  const posts = await getAllDocsMeta(type);
   if (!slug) throw new Error("not found");
   const post = posts.find((post) => post.meta.slug === slug);
   if (!post) {

@@ -1,0 +1,80 @@
+---
+title: "使用Cerbot快速免费申请https"
+date: "2024-04-15"
+spoiler: "你这网站咋还是http？chrome都不让我访问啦"
+---
+
+## 背景
+
+算了，就不再讲https跟http的区别了，这里直接上怎么申请吧
+
+## 具体步骤
+
+* 在服务器安装nginx
+
+* 把自己的域名，解析到这个ip
+
+* 写入自己的nginx配置，我的如下
+
+```nginx
+upstream youngliu-next {
+  server 127.0.0.1:3000;
+  keepalive 20;
+}
+server {
+  server_name    www.youngliu.fun;
+  location / {
+    proxy_pass http://youngliu-next;
+    proxy_read_timeout 60;
+    proxy_connect_timeout 60;
+    proxy_redirect off;
+  }
+}
+server {
+  server_name    www.youngliu.fun;
+  listen 80;
+}
+```
+
+* install snapd
+```bash
+sudo apt update
+sudo apt install snapd
+```
+
+* Ensure snapd up to date
+```bash
+sudo snap install core
+sudo snap refresh core
+```
+
+* Remove certbot-auto
+```bash
+sudo apt-get remove certbot
+```
+
+* Install certbot
+```bash
+sudo snap install --classic certbot
+```
+
+* Prepare cerbot command
+```bash
+sudo ln -s /snap/bin/certbot /usr/bin/certbot
+```
+
+* Run certbot nginx
+```bash
+sudo certbot --nginx
+```
+
+* Test renewal
+```bash
+sudo certbot renew --dry-run
+```
+
+## 更多
+
+之前在服务器上已经运行过cerbot的话，在修改了nginx配置之后，可以直接走到**Run certbot nginx**部分。
+
+参考： https://certbot.eff.org/instructions?ws=nginx&os=ubuntufocal
