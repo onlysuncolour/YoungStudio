@@ -1,0 +1,38 @@
+---
+title: "多个域名解析一个ip的多个端口"
+date: "2024-04-15"
+spoiler: "我有多个网站，是不是要弄好多台服务器呀"
+---
+
+## 直接上nginx配置
+
+```nginx
+upstream inari-next {
+      server 127.0.0.1:3000;
+      keepalive 20;
+}
+upstream youngliu-next {
+      server 127.0.0.1:3001;
+      keepalive 20;
+}
+server {
+      server_name  inari.fun  www.inari.fun;
+      location / {
+        proxy_pass http://inari-next;
+        proxy_read_timeout 60;
+        proxy_connect_timeout 60;
+        proxy_redirect off;
+      }
+      listen 80;
+}
+server {
+      server_name  youngliu.fun  www.youngliu.fun;
+      location / {
+        proxy_pass http://youngliu-next;
+        proxy_read_timeout 60;
+        proxy_connect_timeout 60;
+        proxy_redirect off;
+      }
+      listen 81;
+}
+```
