@@ -1,5 +1,3 @@
-'use client'
-
 import './markdown.css'
 import styles from './index.module.css'
 import { MDXRemote } from "next-mdx-remote/rsc";
@@ -18,7 +16,7 @@ export default function MyMdx({
 
   const words = getPostWords(post.content);
   const readTime = readingTime(words);
-  
+
   return <div className={styles.root}>
     <article>
       <h1
