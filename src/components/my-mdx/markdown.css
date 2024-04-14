@@ -138,3 +138,7 @@
   display: block;
   padding-right: 1em;
 }
+
+.markdown ol {
+  margin-left: 24px;
+}
