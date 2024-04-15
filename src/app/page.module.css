@@ -4,10 +4,29 @@
   background-color: #eef5e3;
 }
 
-.meInfo {
+.title {
   width: 50vw;
   margin: auto;
   text-align: center;
   font-size: 3.5rem;
   font-weight: bold;
+}
+.myBlock {
+  display: flex;
+  width: 80vw;
+  margin: auto;
+  margin-top: 10vh;
+}
+.mePic {
+  width: 10vw;
+}
+.meInfo {
+margin-left: 5vw;
+}
+.greeting {
+  font-size: 3rem;
+}
+.intro {
+  font-size: 2rem;
+  margin-top: 2rem;
 }
