@@ -12,7 +12,7 @@ export default function Home() {
           <img src="./me.png" className={styles.mePic} />
           <div className={styles.meInfo}>
             <div className={styles.greeting}>
-              G'day mate,
+              Good day mate,
             </div>
             <div className={styles.intro}>
               <p>I'm Young Liu, a front-end developer, located in Shanghai, China.</p>
