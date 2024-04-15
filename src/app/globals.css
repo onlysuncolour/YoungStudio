@@ -25,3 +25,12 @@ a {
     color-scheme: dark;
   }
 }
+
+a {
+  color: #1677ff;
+  cursor: pointer;
+}
+
+a:hover {
+  color: #69b1ff
+}

@@ -24,13 +24,13 @@
 .postTitle {
   color: #d23669;
   font-weight: 900;
-  font-size: 28px;
-  line-height: 42px;
+  font-size: 1.75rem;
+  line-height: 2.625rem;
 }
 
 .postDate {
   color: rgb(55 65 81);
-  font-size: 13px;
+  font-size: 0.8rem;
 }
 
 .postBrief {

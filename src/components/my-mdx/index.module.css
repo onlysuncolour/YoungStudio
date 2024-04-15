@@ -11,13 +11,13 @@
 
 .title {
   color: #d23669;
-  line-height: 44px;
+  line-height: 2.75rem;
   font-weight: 900;
-  font-size: 40px;
+  font-size: 2.5rem;
 }
 
 .date {
   color: rgb(55 65 81);
-  font-size: 13px;
+  font-size: 0.8rem;
   margin-top: 0.5rem;
 }
