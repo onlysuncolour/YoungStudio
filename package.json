@@ -9,6 +9,8 @@
     "lint": "next lint",
     "pm2": "pm2 start npm --name young -- run start -- -p 3001",
     "pm2:stop": "pm2 stop young",
+    "pm2:restart": "pm2 restart young",
+    "pm2:deleteall": "pm2 delete all",
     "pm2:list": "pm2 list",
     "pm2:log": "pm2 logs young"
   },
