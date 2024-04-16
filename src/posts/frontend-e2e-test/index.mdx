@@ -1,0 +1,120 @@
+---
+title: "前端E2E自动化测试方案"
+date: "2024-04-17"
+spoiler: "又出现P0bug了，测试就不能测得更全面一些吗？！！"
+---
+
+## 背景
+
+随着公司产品线的增加，主力产品分配到的测试越来越少，他们做回归测试的压力也越来越大，甚至都出现过几次 P0 bug。
+
+## 技术选型
+在了解了市面上各个E2E的前端库之后，最后选择了[微软的playwright](https://playwright.dev/)。  
+
+### why
+
+虽然各种E2E的库最后生成的case文件 *.spec.js 都差不多，playwright自身还支持无头浏览器录制，及可视化查看case运行情况。  
+
+当然，在具体实践中，肯定是不能让测试同学也敲命令行打开playwright的无头浏览器录制case，也还是需要我们有相应的插件直接在浏览器上录制case。
+
+## 前置工作-testid
+
+录制case最首先遇到的问题就是，我们项目中使用了CSS-Module。这导致了我们项目在每次build时所有的className都会发生变化，这也是之前测试同学尝试录制e2e用例时遇到的最大的问题。
+
+在playwright文档中，他们推荐使用在元素属性里的data-testid或testid作为元素的唯一标识。
+
+这次既然E2E自动化测试平台项目是前端主动发起的，那给项目里所有元素都添加data-testid也是我们义不容辞的工作了。
+
+#### testid规范
+
+在项目中，添加testid的过程是一个递归过程。
+
+具体来说就是先在page层定义一个常量，**pageTestid**。  
+给遇到的每个子component都传入 **testid=\{\`\$\{pageTestid}--childComponent\`}**，  
+然后再去子component的文件中，继续给子子component添加testid，就像**testid=\{testid && \`\$\{testid}--grandchildComponent\`}**，  
+抑或是一些最后的操作元素，比如有click事件的元素、button元素、input元素等，就要加上**data-testid=\{testid && \`\$\{testid}--action-btn\`}**
+
+一层层文件递归完成，就表示这个page下的testid添加完成了。
+
+如果添加过程中，有遇到循环遍历渲染的部分，要记住，千万不要把数据的id等加到testid中，而是要把**index**放进去。
+
+示例如下
+
+```tsx
+// myPage.tsx
+const pageTestid = 'my-page'
+export function MyPage() {
+  return <div>
+    <ChildComponent testid={`${pageTestid}--child-component`} />
+    <input name="value" data-testid={`${pageTestid}--value=input`} />
+  </duv>
+}
+```
+
+```tsx
+// child-component.tsx
+export function ChildComonent({testid}) {
+  const dataList = [{id: 357, value: 1}, {id: 958, value: 1}]
+  return <div>
+    <GrandchildComponent testid={testid && `${testid}--grand-child-component`} />
+    {
+      dataList.map(({id}, index) => (
+        <Button
+          data-testid={testid && `${testid}--data-btn-${index}`}
+          key={id}
+        >{id}</Button>
+      ))
+    }
+  </div>
+}
+```
+
+#### 组件库添加testid
+
+组件库中添加testid是一个比较困难的事情，你没有办法直接去修改组件库的源代码以便加入data-testid。
+
+对于antd来说，其组件本身是支持data-testid这个属性的，但是也是支持有限，很多都只是在外层简单的加上了data-testid，其内部元素其实根本没有关注到。
+
+当然，对于其中的Button、Input等组件，其支持的data-testid已经够用了。
+
+对于select、dropdown等，可以给每个具体渲染文本改写成** \<span data-testid\>\{text\}\</span\> **
+
+对于我司来说，组件库是基于antd的二次封装，我们在一些必要的组件里加入了强制递归写入data-testid的逻辑。
+
+代码类似如下
+
+```tsx
+function addUiTestId (className, testid, flag?){
+  if (testid) {
+    const elements: any = document.getElementsByClassName(className) || [];
+    Array.from(elements)?.forEach((el, i) => {
+      setAttributeRecursively(
+        el,
+        'data-testid',
+        generateId,
+        !flag ? `${testid}--${className}` : className,
+        0,
+        `${i}`,
+      );
+    });
+  }
+};
+export function Component ({testid}) {
+  useEffect({
+    setTimeout(() => {
+      addUiTestId(`ui-component--${testid}`, testid, true);
+    }, 400)
+  }, [])
+  return <div className={testid && `ui-component--${testid}`}>
+    ...
+  </div>
+}
+```
+
+#### 小结
+
+testid 最后在页面上其实可以表达为 **PageTestid--child-component--ui-component--test-id**。  
+其中可以从双-中找到具体是哪个组件文件。  
+
+添加testid的工作其实很快，给一个成熟的项目添加完备的testid，大概要占用一个同学一个月？的时间，至少在我司是这样。
+
