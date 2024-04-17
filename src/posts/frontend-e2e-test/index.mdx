@@ -92,20 +92,54 @@ function addUiTestId (className, testid, flag?){
         el,
         'data-testid',
         generateId,
-        !flag ? `${testid}--${className}` : className,
+        !flag ? `${testid}--${className}` : className, // flag 为true，表示className已经包括testid了
         0,
         `${i}`,
       );
     });
   }
 };
+
+function setAttributeRecursively(
+  element,
+  attrName,
+  attrValueGenerator,
+  testid,
+  depth = 0,
+  index = '',
+) {
+  // 为当前元素设置属性，attrValueGenerator是一个函数，用于生成属性值
+  if (shouldAddTestid(element, attrName)) {
+    element.setAttribute(attrName, attrValueGenerator(testid, depth, index));
+  }
+
+  // 遍历所有子元素并递归调用此函数
+  Array.from(element.children).forEach((child, i) => {
+    setAttributeRecursively(
+      child,
+      attrName,
+      attrValueGenerator,
+      testid,
+      depth + 1,
+      `${index}-${i}`,
+    );
+  });
+}
 export function Component ({testid}) {
   useEffect({
     setTimeout(() => {
       addUiTestId(`ui-component--${testid}`, testid, true);
     }, 400)
   }, [])
+  useEffect({
+    if (open) {
+      setTimeout(() => {
+        addUiTestId(`ui-component--${testid}--dropdown`, testid, true);
+      }, 400)
+    }
+  }, [open])
   return <div className={testid && `ui-component--${testid}`}>
+    <Select dropdownClassName={testid && `ui-component--${testid}--dropdown`} />
     ...
   </div>
 }
@@ -118,3 +152,100 @@ testid 最后在页面上其实可以表达为 **PageTestid--child-component--ui
 
 添加testid的工作其实很快，给一个成熟的项目添加完备的testid，大概要占用一个同学一个月？的时间，至少在我司是这样。
 
+## 录制case
+
+最开始的想法，是让测试同学电脑上也安装上playwright，运行命令行进行录制。  
+之后进行了几番思考，以及后续的功能迭代，还是决定自行开发录制case插件。  
+插件嘛，当然是选择使用chrome extension插件咯。  
+
+#### 工作流
+预期中插件的工作流程应该是与playwright相差不大的，比如： 
+* 输入命令行启动playwright的浏览器 和 点击插件的录制按钮
+* 在playwright浏览器上hover到元素会有高亮，显示元素信息 和 录制过程中在chrome浏览器中也有高亮等
+* 点击之后playwright会记录点击元素 和 like that
+* input输入之后会记录 和 like that
+* 生成完整的js文件 和 like that
+
+由上述可以得出来，在录制过程中，或者说是录制开始阶段，是需要在页面上插入一系列js的。  
+并且，为了能够持续、直观的看到之前的操作记录，插件应该是保持一致打开的，或者在页面上有一个弹窗展示操作记录。  
+最后还要有根据操作记录生成完整的js文件。
+
+#### 插件
+由上面工作流可以看到，插件的主体部分，只承载了插入页面js、插入弹窗的功能。当然，插件部分，也会有更多的功能，之后再讲。
+
+为了功能的好实现，这边首先引入一个js文件，承载插件与页面之间的通信。这个js文件在插件运行时就直接插入进去。
+```js
+// background.js
+// 插件启动，监听tabs激活就直接插入进去
+chrome.tabs.onActivated.addListener(async function (activeInfo) {
+  chrome.tabs.get(activeInfo.tabId, function (tab) {
+    if (!tab.url.startsWith("chrome://")) {
+      chrome.scripting.executeScript({
+        target: { tabId: activeInfo.tabId },
+        files: ["content.js"],
+      });
+    }
+  });
+});
+// 
+// 负责与content.js通信
+chrome.runtime.onMessage.addListener(function (message, sender, sendResponse) {
+  if (message.action === 'xxx') {}
+})
+```
+
+而在content.js中，就负责在页面插入js、弹窗，以及和插件进行通信。这边的content.js是直接运行在页面中，而非插件中。
+```js
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+	const { tag, action } = request;
+	const ul = window.location.host;
+	switch (action) {
+		case 'startRecord':
+			const element = document.getElementById('e2e-testing-extend-container');
+			if (element) {
+				return;
+			}
+      appendModal();
+      addResScript();
+			break;
+  }
+})
+
+function appendModal() {
+  const pickerDiv = document.createElement("div");
+  pickerDiv.id = "e2e-testing-extend-container";
+  document.body.appendChild(pickerDiv);
+}
+
+function addResScript() {
+	let script = document.createElement('script');
+	script.setAttribute('defer', 'defer');
+	script.src = chrome.runtime.getURL('embedded/embedded_main.js');
+	document.body.appendChild(script);
+}
+```
+
+#### 操作捕捉
+
+
+#### 展示操作记录
+
+
+#### 生成js代码
+
+
+#### 提交case
+
+
+## 测试平台
+
+#### case管理
+
+
+#### case运行
+
+
+#### 
+
+
+## 更多场景

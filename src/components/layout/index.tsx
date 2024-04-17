@@ -30,6 +30,8 @@ export default function Layout({ children }: Readonly<{
             <span  className={styles.menuSpan}>Leetcodes</span></Link>
           <Link className={styles.menu} href="/about">
             <span  className={styles.menuSpan}>About</span></Link>
+          <Link className={styles.menu} href="https://github.com/onlysuncolour/YoungStudio">
+            <span  className={styles.menuSpan}>github</span></Link>
         </div>
       </header>
       {children}
