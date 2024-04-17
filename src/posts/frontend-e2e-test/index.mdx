@@ -226,15 +226,99 @@ function addResScript() {
 ```
 
 #### 操作捕捉
+从上面就可以看到，其实所有复杂的逻辑都放在了embedded.js里面了。  
+embedded.js是一个react项目的压缩文件。这里先讲操作捕捉。  
+
+在操作开始录制之后，会向document上面绑定一系列的事件。
+```typescript
+const addEventListenerToDom = () => {
+  document.addEventListener('click', handleClickEvent, true);
+  document.addEventListener('mouseover', handleMouseOverEvent);
+  document.addEventListener('mouseout', handleMouseOutEvent);
+};
+```
+
+从这里可以看出，绑定事件是选择绑定在document上，而不是每个元素，主要是因为冒泡事件会被各种吃掉。  
+handleMouseOverEvent和handleMouseOutEvent 控制hover的元素高亮以及展示该元素的信息，handleClickEvent负责添加点击事件。  
+
+首先先看handleMouseOverEvent这个方法。  
+这个方法会 setCurrentTarget 为 event.target， 当currentTarget发生变化时，为currentTarget这个元素添加背景色、边框，并有tooltip展示这个元素的testid，id 或是className。  
+
+此外还有一个快捷键监听事件 cmd+u，当触发这个事件时，会 setCurrentTarget 为 currentTarget 的父节点。如此就可以避免hover到一些icon，或是单纯的没有testid的文字，以便能找到最近的testid元素。
+
+然后再看handleMouseOutEvent方法。  
+这个方法就是很单纯的将currentTarget设置为空。nothing else。
+
+最后再看handleClickEvent方法。  
+首先，会去阻止当前的捕获事件的进一步传播，stopPropagation、preventDefault和stopImmediatePropagation等。  
+然后判断这个事件的target是否为currentTarget或者是currentTarget包含的子元素。是的话用currentTarget进行下去，否则用target。下面都用target进行表示。  
+
+target如果是一个input类元素，那就去监听其blur事件，如若不然，则记录这个target的点击，并且调用这个target元素的click方法。
+
+input类元素在其blur事件被触发之后，记录这个target被输入的内容。
+
+此外还有hover等其他事件，这种事件怎么去记录，且往下看。
 
 
-#### 展示操作记录
+#### 操作记录
 
+embedded.js这个react项目，会向e2e-testing-extend-container这个元素append那个react应用。  
+这个应用的页面部分就是展示操作记录及编辑操作记录啦。  
+一般情况下，记录的事件都是点击事件，或者输入事件。在这里，就可以将这些事件修改为 hover。
+
+此外，还可以添加一些其他的步骤，比如说，
+* 等待x秒钟
+* expect - 添加预期方法（直接修改点击事件为预期的话，则是预期存在那个元素的innerText）
+* element 等待元素出现
+* pageData - 添加预期方法，调用项目预置的getPageData方法，填入其中
+* buttonAvailable - 等待button可用
+* 等等
+
+还有复制、删除步骤等功能。
 
 #### 生成js代码
+生成js代码，是根据步骤的类型去生成。  
+在记录操作时，会记录 类型、元素的唯一标识类型、元素的唯一标识符、元素的innerText等，在这一步，就要根据这些内容去分门别类的生成js。
 
+代码如下
+```typescript
+function getClickText(node: ActList) {
+  const pathStr = nodePathForPlay(node);
+  return `await page.${pathStr}.click();\n`;
+}
+
+function getHoverText(node: ActList) {
+  const pathStr = nodePathForPlay(node);
+  return `await page.${pathStr}.hover();\n`;
+}
+function getFillText(node: ActList) {
+  const {fillTxt} = node;
+  const pathStr = nodePathForPlay(node);
+  return `await page.${pathStr}.fill('${fillTxt}');\n`;
+}
+function getTimeText(time = '1') {
+  const num = parseInt(time, 10) * 1000;
+  return `await page.waitForTimeout(${num});\n`;
+}
+function getWaitElementText(node: ActList) {
+  const pathStr = nodePath(node);
+  return `await page.waitForSelector('${pathStr}');\n`;
+}
+function getWaitBtnText(node: ActList) {
+  const pathStr = nodePath(node);
+  return `await page.waitForSelector('${pathStr}[data-active="true"]');\n`;
+}
+function getPageResult() {
+  return `const v1 = await page.evaluate(() => {
+      return window.__getPageResult();
+  });\n`;
+}
+```
+
+如此一来，一个case就完成了。
 
 #### 提交case
+
 
 
 ## 测试平台
