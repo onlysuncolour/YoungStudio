@@ -1,7 +1,133 @@
 ---
 title: "是git，但是定制化的bash命令"
 date: "2024-04-18"
-spoiler: ""
+spoiler: "当你新建分支、发起MR，手有点儿累时，你可以试试这个"
 ---
 
 ## 背景
+彼时在翻看gitlab记录时，发现各种同学给自己的分支名起的五花八门，忍俊不禁。
+
+还有就是，在自己想要提mr的时候，总是需要点击一下push之后返回的提mr的链接（当然，也有同学是打开gitlab，手动去选择自己的branch），然后选择目标branch，选择reviewer。  
+况且现在版本多了，每次还要去想这个要合并到哪个版本分支上。
+
+作为一个程序员，怎么能把精力放在这个上面呢？
+
+## 发起MR
+先说相对麻烦的功能。
+
+首先明确一下，现在我们用到的是 **ya** (或者 it，随便你怎么命名), 这条命令就叫做 **ya mr**
+
+然后，再明确一下这个工作流。
+
+#### 工作流
+
+* 键入命令
+* 确认当前git信息
+* 根据当前分支，获得要合并到的分支
+* 选择reviewer
+* 发起MR，将当前分支合并到目标分支，并且reviewer为指定人
+
+It's so easy！
+
+Let's do it！
+
+#### 获取当前git信息
+
+首先需要确定当前的项目，是不是我们的目标项目，或者说是不是指定gitlab的项目
+
+```bash
+  # 检查repo是不是our gitlab repo
+  local git_repo_url=$(git::repo_url)
+  # http://a.b.c.d:3333/group/projectName
+  # ssh://git@e.f.g.h:22222/group/projectName.git
+
+  local check_http_url=$(echo $git_repo_url | awk -F 'a.b.c.d:3333/' '{print $2}')
+  local check_ssh_url=$(echo $git_repo_url | awk -F 'e.f.g.h:22222/' '{print $2}')
+  if [ "$check_http_url" = "" ] && [ "$check_ssh_url" = "" ]; then
+    log::info "❤️暂不支持非our gitlab项目❤️"
+    return 1
+  fi
+```
+
+然后获得当前的项目信息
+
+```bash
+  # 获得repo的group和projectName
+  local git_repo_group=$(git::namespace)
+  local git_repo_project=$(git::basename)
+  local repo_name="$git_repo_project"
+  if [ "$git_repo_group" != "" ]; then
+    repo_name="${git_repo_group}%2F${git_repo_project}"
+  fi
+```
+
+还有一个最重要的信息就是，当前登录信息，这个将用于提交mr的鉴权使用。  
+鉴于我们在使用的**ya**是一个成熟的命令行工具，理所应当，其也有记录config的能力。  
+而登录信息，则可以从gitlab的 **/profile/personal_access_tokens** 页面中获得。
+
+```bash
+# 设置gitlab key
+local key="GITLAB_TOKEN"
+local gitlab_token=$(ya::config ${key})
+if [ "$gitlab_token" = "" ]; then
+  log::info "没有发现gitlab token，请打开下面链接获取token"
+  log::info "http://a.b.c.d:3333/profile/personal_access_tokens"
+  os::inquirer gitlab_token "text" "请输入gitlab token" true
+  ya::config $key "$gitlab_token" -g
+fi
+```
+
+#### 获得合并分支
+
+在我们的命名规范中，新需求分支以**feature/1.1\_**开头，bug fix 分支以 **hotfix/1.1\_**开头。
+
+以及release分支就是 **release/1.1**这样，还有正在开发的版本为**sprint_dev**。
+
+如此就很轻松得到目标分支
+```bash
+  # 设置target branch
+  local type=$(echo $current_branch_name | awk -F '/' '{print $1}')
+  local target_branch_name="sprint_dev"
+  if [ "$type" = "hotfix" ]; then
+    local branch=$(echo $current_branch_name | awk -F '/' '{print $2}')
+    local version=$(echo $branch | awk -F '_' '{print $1}')
+    target_branch_name="release/${version}"
+  fi
+  if [ "$type" != "feature" ] && [ "$type" != "fix" ] && [ "$type" != "hotfix" ]; then
+    os::inquirer target_branch_name "text" "请输入目标分支" true
+  else
+    os::inquirer value "text" "请输入目标分支" true ${target_branch_name}
+    if [ "$value" != "" ]; then
+      target_branch_name="${value}"
+    fi
+  fi
+```
+
+当然，如果有更细致的区分，比如说每周发车会有不同的版本号，在这里也可以做一些请求拿取最新的版本号信息。
+
+#### 发送mr请求
+
+这部分我翻了gitlab文档好久才找到。
+
+在我实践中，reviewer 即 assignee_id 是锁定某一个同事的，在具体实现里，也可以去获取当前项目所有成员进行选择。
+
+```bash
+  # 设置请求体
+  local tmp_data_file=$(os::tmp_file)
+  cat <<-END >$tmp_data_file
+{
+  "target_branch": "${target_branch_name}",
+  "source_branch": "${current_branch_name}",
+  "title": "${current_branch_name}",
+  "assignee_id": "13",
+  "remove_source_branch": true,
+  "squash": true
+}
+END
+ # 发送mr请求
+  local mr_result=$(curl --request POST -H "PRIVATE-TOKEN: ${gitlab_token}" -H "Content-Type: application/json" -d @${tmp_data_file} "http://a.b.c.d:3333/api/v4/projects/${repo_name}/merge_requests" 2>/dev/null)
+```
+
+后面还有解析返回体、处理报错等，就不在这里赘述了。
+
+
