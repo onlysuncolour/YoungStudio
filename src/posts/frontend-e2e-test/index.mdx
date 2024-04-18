@@ -8,14 +8,21 @@ spoiler: "ing......又出现P0bug了，测试就不能测得更全面一些吗�
 
 随着公司产品线的增加，主力产品分配到的测试越来越少，他们做回归测试的压力也越来越大，甚至都出现过几次 P0 bug。
 
+
 ## 技术选型
 在了解了市面上各个E2E的前端库之后，最后选择了[微软的playwright](https://playwright.dev/)。  
+
 
 ### why
 
 虽然各种E2E的库最后生成的case文件 *.spec.js 都差不多，playwright自身还支持无头浏览器录制，及可视化查看case运行情况。  
 
 当然，在具体实践中，肯定是不能让测试同学也敲命令行打开playwright的无头浏览器录制case，也还是需要我们有相应的插件直接在浏览器上录制case。
+
+## 主要目标
+- 系统流程的完整性
+- 系统数据的准确性
+- 业务组件在不同参数、输入、操作下的标准化输出
 
 ## 前置工作-testid
 
@@ -243,6 +250,38 @@ handleMouseOverEvent和handleMouseOutEvent 控制hover的元素高亮以及展�
 
 首先先看handleMouseOverEvent这个方法。  
 这个方法会 setCurrentTarget 为 event.target， 当currentTarget发生变化时，为currentTarget这个元素添加背景色、边框，并有tooltip展示这个元素的testid，id 或是className。  
+```tsx
+const lastTargetRef = useRef(null)
+const lastTargetStyle = useRef(null)
+function handleMouseOverEvent(event) {
+  let targetElement: any = event.target;
+  // 对于一些特殊的元素进行过滤
+  if (checkShouldExcludeNode(targetElement)) {
+    return;
+  }
+  const nodeInfo = getElement(targetElement, true);
+  const {
+    son: {type},
+  } = nodeInfo;
+  if (type === undefined) {
+    return;
+  }
+  setCurrentTarget(targetElement)
+}
+
+useEffect(() => {
+  if (lastTargetRef.current) {
+    lastTargetRef.current.style = lastTargetStyle.current
+  }
+  lastTargetRef.current = currentTarget, lastTargetRef.current.style = currentTarget.style;
+  const txt = getFindTxt(nodeInfo),
+    rect = targetElement.getBoundingClientRect();
+  currentTarget.style = {...}
+  globalTooltip.innerText = txt;
+  globalTooltip.style.top = rect.top - 10 // something like that
+  globalTooltip.style.left = rect.left - 10 // something like that
+}, [currentTarget])
+```
 
 此外还有一个快捷键监听事件 cmd+u，当触发这个事件时，会 setCurrentTarget 为 currentTarget 的父节点。如此就可以避免hover到一些icon，或是单纯的没有testid的文字，以便能找到最近的testid元素。
 
@@ -319,17 +358,57 @@ function getPageResult() {
 
 #### 提交case
 
+提交case，这边建议是通过sendMessage和chrome.runtime.onMessage把case内容传递给background.js层，也就是插件层，让插件去进行提交。  
+这样做的好处主要就是为了避免跨域。  
 
+还有一个要考虑的是，我们就仅提交case的js代码吗？
+
+我在具体实践中，是将case的js代码和操作步骤一同进行提交。  
+保留操作步骤，意味着以后用其他的测试框架，也能很轻松的转换成其他框架的js代码格式。
 
 ## 测试平台
 
-#### case管理
+第三个大的方面就是测试平台。  
+测试平台大概包括这几个方面。
 
+* case的管理
+* 版本的管理
+* 常量的管理
+* 运行case
+* 测试结果
+* 定时任务与即时任务
+* 与gitlab等工作流挂钩
+* 消息推送提醒
+
+#### case与版本管理
+
+保存case一般有两种方式，一种是存在git项目里，一种是存在数据库中。  
+不管哪种方式，case都会有固定的路径/模块路径+case名这些信息。  
+比如说 A大模块/b小模块/xxxxxxx功能.spec.js  
+
+如此，也便于在平台前端进行展示，也方便测试、开发同学去划分case。
+
+版本也是一个绕不开的问题。这个在具体实践中也会出一些差错。  
+在我们的实现中，升级版本之后，低版本的会默认同步到高版本，而高版本则不会同步到低版本。  
+然后再从case运行的结果，再去判断哪些case已经被废弃，哪些case需要重新录制。  
+
+#### 常量管理
+
+在提交case时，有忽略一些地方：登陆和路由。  
+这部分，其实就是与常量相关。不同版本对应不同的路由，也对应不同的登录信息。  
+这些都会在case运行时，给填入相应的常量值。
+
+一般来说，常量会分为
+* 版本号对应的常量
+* 版本号，角色，权限对应的常量
+* 版本号，case单独设置常量 
+* 带有特殊id的路由的常量
+* 等等
 
 #### case运行
 
+playwright官方提供了可以在服务器上运行的包，可以直接写在dockerfile里面使用。nodejs版本要求至少18.  
 
-#### 
+playwright默认运行三次，分别在chrome、firefox、safari上运行，当然可以设置成只运行在chrome。
 
-
-## 更多场景
+在具体实践中，很容易就会遇到元素找不到，分析下来大概是页面还没有加载完成。虽然playwright默认会等待30秒还是3分钟。这时，我们可以做的就是，在case中添加等待时间，或者多运行两次，如果都失败则为失败。
