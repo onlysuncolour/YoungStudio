@@ -1,6 +1,6 @@
 .root {
-  padding-top: 2rem;
-  max-width: 60vw;
+  padding-top: 2rem !important;
+  max-width: 60vw !important;
 }
 
 .root .title {
