@@ -1,5 +1,6 @@
 import { getAllDocsMeta, getDoc } from "@/services/post";
 import MyMdx from "@/components/my-mdx";
+import styles from './page.module.css'
 export async function generateStaticParams() {
   const metas = await getAllDocsMeta('resume');
   return metas.map((post) => {
@@ -24,5 +25,5 @@ export default async function PostPage({
     }
   }
 
-  return <MyMdx post={post} postComponents={postComponents} />
+  return <MyMdx post={post} postComponents={postComponents} style={styles} />
 }

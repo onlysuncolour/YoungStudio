@@ -3,12 +3,18 @@
 import styles from './index.module.css'
 import Link from 'next/link'
 import Image from 'next/image'
+import { usePathname } from 'next/navigation';
 // import { useRouter, usePathname } from 'next/navigation'
 
 export default function Layout({ children }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // const pathname = usePathname();
+  const pathname = usePathname();
+  if (pathname.startsWith('/resumes/')) {
+    return <div className={styles.container}>
+      {children}
+    </div>
+  }
   return (
     <div className={styles.container}>
       <header className={styles.header}>

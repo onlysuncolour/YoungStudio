@@ -8,23 +8,25 @@ import { getPostWords, readingTime } from '@/utils';
 type TMyMdxProps = {
   post: any,
   postComponents: any,
+  style?: any
 }
 export default function MyMdx({
   post,
-  postComponents
+  postComponents,
+  style,
 }: TMyMdxProps) {
 
   const words = getPostWords(post.content);
   const readTime = readingTime(words);
 
-  return <div className={styles.root}>
+  return <div className={`${styles.root} ${style?.root || ''}`}>
     <article>
       <h1
-        className={styles.title}
+        className={`${styles.title} ${style?.title || ''}`}
       >
         {post.meta.title}
       </h1>
-      <p className={styles.date}>
+      <p className={`${styles.date} ${style?.date || ''}`}>
         {new Date(post.meta.date).toLocaleDateString("cn", {
           day: "2-digit",
           month: "2-digit",
@@ -38,7 +40,7 @@ export default function MyMdx({
     <p className="mt-2 text-[13px] text-gray-700 dark:text-gray-300">
       预计阅读时间：{readTime}分钟
     </p> */}
-      <div className="markdown margin-top-10">
+      <div className={`markdown margin-top-10 ${style?.markdown || ''}`}>
         <MDXRemote
           source={post?.content || ""}
           components={{
