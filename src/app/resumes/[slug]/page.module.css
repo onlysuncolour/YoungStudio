@@ -3,43 +3,43 @@
   max-width: 60vw;
 }
 
-.title {
+.root .title {
   /* color: #000; */
   display: none;
 }
 
-.date {
+.root .date {
   display: none;
 }
 
-.markdown h2 {
+.root .markdown h2 {
   padding-bottom: 0;
   color: #65696d;
   font-size: 1.5rem;
 }
 
-.markdown h3 {
+.root .markdown h3 {
   padding-bottom: 1rem;
 }
-.markdown h4 {
+.root .markdown h4 {
   padding-bottom: 1rem;
   font-size: 1rem;
   font-weight: 900;
 }
 
-.markdown blockquote {
+.root .markdown blockquote {
   margin-bottom: 1rem;
 }
 
 
-.markdown p {
+.root .markdown p {
   padding-bottom: 0.5rem;
 }
 
-.markdown ul li {
+.root .markdown ul li {
   margin-bottom: 0.25rem;
 }
 
-.markdown a {
+.root .markdown a {
   color: rgb(30, 144, 255);
 }
