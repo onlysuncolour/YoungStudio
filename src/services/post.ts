@@ -4,16 +4,18 @@ import matter from "gray-matter";
 import { pinyin } from "pinyin-pro";
 import { isChinese } from "@/utils";
 
-type DocType = 'post' | 'note' | 'leetcode'
+type DocType = 'post' | 'note' | 'leetcode' | 'resume'
 
 const postsDirectory = path.join(process.cwd(), "src", "posts");
 const notesDirectory = path.join(process.cwd(), "src", "notes");
 const leetcodesDirectory = path.join(process.cwd(), "src", "leetcodes");
+const resumesDirectory = path.join(process.cwd(), "src", "resumes");
 
 const directoryMap = {
   post: postsDirectory,
   note: notesDirectory,
-  leetcode: leetcodesDirectory
+  leetcode: leetcodesDirectory,
+  resume: resumesDirectory
 }
 export const getAllDocsMeta = async (type: DocType) => {
   const rootDirectory = directoryMap[type];
