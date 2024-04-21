@@ -1,5 +1,150 @@
 ---
 title: "刘召阳的简历"
-date: "2024-04-18"
-spoiler: "ing"
+date: "2024-04-21"
+spoiler: "你好，我是刘召阳"
 ---
+
+# 刘召阳
+
+## 基本信息
+---
+刘召阳  
+前端工程师  
+邮箱: iyoungliu@163.com  
+主页: [https://www.youngliu.fun](https://www.youngliu.fun/)  
+9年工作经验
+简历: [https://www.youngliu.fun/resumes/zh](https://www.youngliu.fun/resumes/zh)
+
+## 头衔
+---
+* 前端工程师
+* 组长(带领3名成员)
+* 困难解决者
+
+## 个人总结
+---
+在前端领域有九年开发经验，富有激情的程序员。喜欢去创造易用、高性能的网页应用。
+
+在前端框架和CSS上极有经验，并且对E2E测试、性能优化、打包&部署、低代码&配置化、算法等都有所研究。
+
+擅长解决问题和接受挑战，思维敏捷，编程很快。
+
+喜欢活跃团队气氛，激励、指导、精进所在的团队，并且喜欢分享知识。
+
+英语工作。
+
+## 强项
+---
+* 编程专家
+* 解决困难
+* 有团队精神
+
+## 教育
+---
+同济大学, 学士学位, 2015
+
+## 经历
+---
+### [数数信息科技上海有限公司](https://www.thinkingdata.cn/) 2021.06-2024
+> 数数科技，是全球先进的游戏大数据服务商  
+
+**前端专家**  
+**数据分析引擎前端组组长**
+* 和前端组一起，打造了 [数据分析引擎](https://demo-ta.thinkingdata.cn/demo/index.html)。 
+* 性能优化：重构了搭建分析指标条件部分和离屏渲染echarts
+* 探索低代码模式，开发可配置化页面。
+* 开发了 [前端E2E测试平台](https://www.youngliu.fun/posts/frontend-e2e-test)
+* 积极推进提高工作效率。
+
+#### [数据分析引擎](https://demo-ta.thinkingdata.cn/demo/index.html)
+> 数据分析引擎, 数数科技最重要的项目, 是一个数据分析平台。 其中最重要、最常用的功能就是通过搭建不同的分析指标条件来生成图表。
+
+In this project, I was in charge of the analytics part at the very beginning. And after two years, took in charge of the whole project, leading 3 front-end developers.
+* Built analytics system and maintained the whole project.
+* Refactored the logic of [building analyze indicators and conditions](https://www.youngliu.fun/posts/b2b-data)
+* Explored low code pattern, rebuilt analytics system by using configuration file and configurable components.
+
+#### [Frontend E2E Testing Platform](https://www.youngliu.fun/posts/frontend-e2e-test)
+> This project was self-organized, spontaneously implemented and motivated by our perfect relations with QA team.  
+  At that time, there were several new projects being raised, and QA mates can't cover whole projects.
+
+We use playwright to be the engine and we built a whole e2e testing environment around it, like chrome extension for case recording, platform, case running flow.
+* Transformed our project to make it testable.
+* Developed chorme extension for case recording
+* Built testing platform to show cases, run cases, and manage cases.
+
+#### [Independent Frontend Project Deployment](https://www.youngliu.fun/posts/frontend-envs)
+> This project was developed totally because of tired of asking operations engineer for containers/servers to deploy our frontend project.  
+  Before this project online, frontend project, backend project and db must be deployed in the same container/server. There was no such thing like deploy frontend project in independent container/server which could access backend by nginx or nodejs.
+
+I use simple Nodejs to proxy all routers to the specific frontend page or specific backend host. You could see details from [my own page](https://www.youngliu.fun/posts/frontend-envs)
+* Using Express to proxy all routers
+* Be used over 1200 times in one year by 12 members. Had saved a lot of time and money.
+
+#### [Frontend Environment Switch Helper](https://www.youngliu.fun/posts/env-switch)
+> Our environments/dockers/containers were increasing so quickly with our company's expanding and feature's increacing, as well as bugs. 
+  It's not convinent that you need to update your webpack proxy config when you need to access another backend host.
+  In that case, we built this chrome extension to make everything easy.
+
+Using this helper, when you click a host in list, helper will send a request to webpack dev server. Webpack dev server will update proxy host depend on the helper request.  
+The help is also integrated with many functions, like login the system by username/password we set in helper, sync data to/from our platform, top/archive any host, open the host page when you click and current page is not in dev mode.
+* Refactored webpack dev server config, especially proxy part.
+* Created a chrome extension, implemented all functions.
+
+### [eBay Inc.](https://www.ebay.com) 2018.11-2021.06
+> eBay Inc. is an American multinational e-commerce company.
+
+**Senior Frontend Developer**  
+**Working in OCS team**
+* Developed and maintained [Help Page](https://www.ebay.com/help/home) with team.
+* Worked with global colleagues
+* Developed automated assistant 
+
+#### [eBay Help Page](https://www.ebay.com/help/home)
+> eBay Help Page is a Customer Service page which could give users help when they meet troubles.
+  User could get articles or get contact based on their orders or questions.
+
+I started to work with global colleagues from this project, and make global website for multi-languages and people with disabilities.  
+
+* Developed automated assistant with UK LLM Team.
+* Focused on i18n and accessibility for people with disabilities.
+* Used A/B Testing.
+* Developed Unit Test.
+* Built couple middleware using Nodejs about handling error, routing, and data transforming.
+* Integrated third-party components and done security check under eBay's policy.
+
+### Human Cube Information Technology (Shanghai) Co. Ltd 2017.07-2018.11
+> Human Cube provided human resource platform based on big data and AI.
+
+**Senior Frontend Developer**  
+**In Charge of CRM and BI Systems**
+
+* Developed CRM and BI Systems
+* Developed general component library
+* Built configurable data rendering page
+* Created projects from 0.
+* Completed many sharing and presentation about developing knowledge includes frontend, git, server side.
+
+#### CRM & BI
+> They were actually two projects. I put them together because they were almost the same, using same tech.
+
+These two projects contains many functions, like charts, data tables, work flow, authority control, configurable data displaying. I developed these independently.  
+I learnt a lot from this career, about frontend framework, project frameworks, features management.
+
+* Using webpack, vue, antDesign to build whole project.
+* Created configurable data display pages.
+* Display data in echarts and table based on configuration.
+
+### [Yintech Investment Holdings Limited](https://www.yintech.cn) 2016.07-2017.07
+> Yintech offers spot commodity trading services.
+
+I developed CRM system for subsidiaries, providing chatting, calling, report management, human resource structure management, configurable data table and other functions.  
+
+**Frontend Developer**  
+**In Charge of CRM Systems**
+
+* Display data in charts and table
+* developed configurable data function
+* Using WebRTC to build a calling system.
+* Using Nodejs to export charts.
+
