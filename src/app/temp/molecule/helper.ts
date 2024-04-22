@@ -46,11 +46,14 @@ async function handleOtherUrl(data: string, options?: any) {
 }
 
 async function handleUrlFetch(data: any, options?: any) {
-  return new Promise(res => {
+  return new Promise((res, rej) => {
     let bufferData:any, length: number;
     const request = new Request(data.url, data.options)
     fetch(request).then(function(response) {
       length = Number(response.headers.get("content-length"));
+      console.log({
+        'response.headers': response.headers.get("content-length")
+      })
       return response.arrayBuffer();
     }).then(function(chunk) {
       if (!bufferData) {
@@ -58,11 +61,18 @@ async function handleUrlFetch(data: any, options?: any) {
       } else {
         bufferData = Buffer.concat([bufferData, chunk]);
       }
-      options?.handleStateChange?.(`load data from url: ${bufferData?.length}/${length}`)
+      options?.handleStateChange?.(`load data from url: ${bufferData?.byteLength}/${length}`)
     }).finally(async () => {
       options?.handleStateChange?.(`load data from url: done`);
-      const respData = await bufferData.toString('utf8');
-      res(workflowPipe(respData, 'validateData', options))
+      // const str = new TextDecoder().decode(byteArray);
+      try {
+        const respDataString =  new TextDecoder().decode(bufferData)
+        const respData = JSON.parse(respDataString)
+        res(workflowPipe(respData, 'validateData', options))
+      } catch(e) {
+        options?.handleStateChange?.(`Data parse Wrong`);
+        rej(options)
+      }
     })
   })
 }
@@ -116,4 +126,15 @@ function validateData(data: any, options?: any) {
     return workflowPipe('data is not correct!', 'error', options)
   }
   return workflowPipe(data, 'renderData', options)
+}
+
+
+export function validUrl(input:string) {
+  let url;
+  try {
+    url = new URL(input);
+  } catch (_) {
+    return false;  
+  }
+  return url.protocol === "http:" || url.protocol === "https:";
 }

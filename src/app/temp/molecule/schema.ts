@@ -101,7 +101,6 @@ function validRequired(data: any, def: any) {
   return true
 }
 
-
 function validBasic(data: any, type: string) {
   if (type === 'string' && !validString(data)) {
     return false
@@ -133,10 +132,34 @@ function validNumber(data:any) {
   return typeof data === "number"
 }
 
+function validArray(data: any, prop: any) {
+  if (data !== undefined && Array.isArray(data)) {
+    return false
+  }
+  for (let i = 0; i < data.length; i++) {
+    const _data = data[i];
+    if (BasicTypes.includes(prop.type)) {
+      if (!validBasic(_data, prop.type)) {
+        return false
+      }
+    } else if (prop.type === 'array') {
+      if (!validArray(data, prop.items)) {
+        return false
+      }
+    } else if (prop.type.startsWith('__')) {
+      if (!validateSchema(data, prop.type.substring(2, prop.type.length))) {
+        return false
+      }
+    }
+    return true
+  }
+}
+
 export default function validateSchema(data: any, def = 'mol') {
   // @ts-ignore
   const curDef = schemaDefinitions[def]
 
+  console.log({data})
   const props = Object.keys(curDef.properties);
   for (let i = 0; i < props.length; i++) {
     const propName = props[i],
@@ -150,10 +173,9 @@ export default function validateSchema(data: any, def = 'mol') {
         return false
       }
     } else if (prop.type === 'array') {
-      if (!Array.isArray(propValue)) {
+      if (!validArray(propValue, prop.items)) {
         return false
       }
-      // todo
       return true
     } else if (prop.type.startsWith('__')) {
       if (!validateSchema(data[propName], prop.type.substring(2, prop.type.length))) {
