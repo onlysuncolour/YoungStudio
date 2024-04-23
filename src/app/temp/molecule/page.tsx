@@ -2,28 +2,31 @@
 
 import { useRef, useState } from 'react'
 import styles from './page.module.css'
-import { validUrl, workflowPipe } from './helper';
+import { getInitOptions, validUrl, workflowPipe } from './helper';
 import { message } from '@/components/message';
 
 export default function Page() {
 
   const [datas, setDatas] = useState([]);
-  const [tasks, setTasks] = useState<any>({});
+  const [tasks, setTasks] = useState<any>([]);
 
   const [s3Url, setS3Url] = useState('')
   const [url, setUrl] = useState('')
 
-  const tastsLatest = useRef(tasks)
-  function handleTaskStateChange(id: string, state:any) {
-    if (!tastsLatest.current[id]) {
-      tastsLatest.current[id] = {}
+  const tasksLatest = useRef(tasks)
+
+  function handleTaskStateChange(options: any, state: any) {
+    let index = options.index
+    if (index === undefined) {
+      index = options.index = tasksLatest.current.length
     }
-    const task = tastsLatest.current[id]
-    task.state = state;
-    setTasks({
-      ...tasks,
-      id: task
-    })
+    const task = tasksLatest.current[index] || {id: index, state: {}}
+    task.state = {
+      ...task.state,
+      ...state
+    };
+    tasksLatest.current[index] = {...task}
+    setTasks([...tasksLatest.current])
   }
 
   function handleS3UrlClick() {
@@ -31,12 +34,10 @@ export default function Page() {
       message('s3url is not a url!')
       return;
     }
-    const uuid = crypto.randomUUID();
     workflowPipe(
       s3Url,
-      's3Url', {
-      handleStateChange: 
-        (state:any) => handleTaskStateChange(uuid, state)}
+      's3Url', 
+      getInitOptions({handleTaskStateChange})
     )
   }
   function handleUrlClick() {
@@ -44,12 +45,10 @@ export default function Page() {
       message('url is not a url!')
       return;
     }
-    const uuid = crypto.randomUUID();
     workflowPipe(
       url,
-      'otherUrl', {
-      handleStateChange: 
-        (state:any) => handleTaskStateChange(uuid, state)}
+      'otherUrl', 
+      getInitOptions({handleTaskStateChange})
     )
   }
   const handleDragEnter = () => {}
@@ -62,12 +61,10 @@ export default function Page() {
   const handleDrop = (e: any) => {
     e.preventDefault()
     e.stopPropagation();
-    const uuid = crypto.randomUUID();
     workflowPipe(
-      e.dataTransfer.items, 
-      'handleFilesDrop', {
-      handleStateChange: 
-        (state:any) => handleTaskStateChange(uuid, state)}
+      e.dataTransfer.files, 
+      'handleFilesDrop', 
+      getInitOptions({handleTaskStateChange})
     )
   }
   return <div
@@ -92,7 +89,18 @@ export default function Page() {
       </div>
     </div>
     <div>
-      
+      {
+        // @ts-ignore
+        tasks.map(({id, state}, i:number) => {
+          return <div key={i}>
+            task {i}:
+            from - {state.from} {state.host || ''} 
+            status - [{state.status || ''}],
+            msg - [{state.msg || ''}],
+            {/* data - {t.data} */}
+          </div>
+        })
+      }
     </div>
   </div>
 }

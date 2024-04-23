@@ -3,7 +3,7 @@ const schemaDefinitions = {
     type: 'object',
     properties: {
       timestamp: {
-        type: 'string',
+        type: 'number',
       },
       version: {
         type: 'string'
@@ -28,13 +28,13 @@ const schemaDefinitions = {
     type: 'object',
     properties: {
       isPlaying: { type: 'boolean' },
-      nextSnapshotDelayInMs: { type: 'string' }
+      nextSnapshotDelayInMs: { type: 'number' }
     }
   },
   entry: {
     type: 'object',
     properties: {
-      timestamp: { type: 'string' },
+      timestamp: { type: 'number' },
       snapshot: { type: '__snapshot' }
     }
   },
@@ -133,7 +133,7 @@ function validNumber(data:any) {
 }
 
 function validArray(data: any, prop: any) {
-  if (data !== undefined && Array.isArray(data)) {
+  if (data !== undefined && !Array.isArray(data)) {
     return false
   }
   for (let i = 0; i < data.length; i++) {
@@ -143,11 +143,11 @@ function validArray(data: any, prop: any) {
         return false
       }
     } else if (prop.type === 'array') {
-      if (!validArray(data, prop.items)) {
+      if (!validArray(_data, prop.items)) {
         return false
       }
     } else if (prop.type.startsWith('__')) {
-      if (!validateSchema(data, prop.type.substring(2, prop.type.length))) {
+      if (!validateSchema(_data, prop.type.substring(2, prop.type.length))) {
         return false
       }
     }
@@ -158,8 +158,6 @@ function validArray(data: any, prop: any) {
 export default function validateSchema(data: any, def = 'mol') {
   // @ts-ignore
   const curDef = schemaDefinitions[def]
-
-  console.log({data})
   const props = Object.keys(curDef.properties);
   for (let i = 0; i < props.length; i++) {
     const propName = props[i],
@@ -170,16 +168,16 @@ export default function validateSchema(data: any, def = 'mol') {
     }
     if (BasicTypes.includes(prop.type)) {
       if (!validBasic(propValue, prop.type)) {
-        return false
+      return false
       }
     } else if (prop.type === 'array') {
       if (!validArray(propValue, prop.items)) {
-        return false
+      return false
       }
       return true
     } else if (prop.type.startsWith('__')) {
       if (!validateSchema(data[propName], prop.type.substring(2, prop.type.length))) {
-        return false
+      return false
       }
     }
   }

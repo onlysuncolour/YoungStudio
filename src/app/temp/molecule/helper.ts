@@ -16,44 +16,51 @@ export async function workflowPipe(data: any, flow: string, options?: any):Promi
   if (flow === 'validateData') {
     return validateData(data, options)
   }
+  if (flow === 'handleBufferData') {
+    return handleBufferData(data, options)
+  }
   if (flow === 'renderData') {
-
+    return handleRenderData(data, options)
   }
   if (flow === 'error') {
-    
+    return handleError(data, options)
   }
   return true
 }
 
 async function handleS3Url(data: string, options?: any){
-  return handleUrlFetch({url: data}, {
-    ...options,
-    url: 's3'
+  options?.handleStateChange({
+    from: 's3',
   })
+  return handleUrlFetch({url: data}, options)
 }
 
 async function handleOtherUrl(data: string, options?: any) {
+  options?.handleStateChange({
+    from: 'internet',
+    host: getUrlInfo(data).host,
+  })
+  options.urlType = 'other'
   return handleUrlFetch({
-    url: '/api/fetchDataByUrl',
+    url: '/api/fetchMolData',
     options: {
       method: "POST",
       body: {url: data},
     }
-  }, {
-    ...options,
-    url: 's3'
-  })
+  }, options)
 }
 
 async function handleUrlFetch(data: any, options?: any) {
+  options?.handleStateChange({
+    msg: 'start fetching',
+    status: 'fetching',
+  })
   return new Promise((res, rej) => {
     let bufferData:any, length: number;
     const request = new Request(data.url, data.options)
-    fetch(request).then(function(response) {
-      length = Number(response.headers.get("content-length"));
-      console.log({
-        'response.headers': response.headers.get("content-length")
-      })
+    fetch(request)
+    .then(function(response) {
+      length = Number(response.headers.get("content-length")) || 0;
       return response.arrayBuffer();
     }).then(function(chunk) {
       if (!bufferData) {
@@ -61,27 +68,38 @@ async function handleUrlFetch(data: any, options?: any) {
       } else {
         bufferData = Buffer.concat([bufferData, chunk]);
       }
-      options?.handleStateChange?.(`load data from url: ${bufferData?.byteLength}/${length}`)
+      options?.handleStateChange?.({
+        status: 'fetching',
+        msg: `load data from url: ${bufferData?.byteLength}/${length}`
+      })
     }).finally(async () => {
-      options?.handleStateChange?.(`load data from url: done`);
-      // const str = new TextDecoder().decode(byteArray);
-      try {
-        const respDataString =  new TextDecoder().decode(bufferData)
-        const respData = JSON.parse(respDataString)
-        res(workflowPipe(respData, 'validateData', options))
-      } catch(e) {
-        options?.handleStateChange?.(`Data parse Wrong`);
-        rej(options)
-      }
+      options?.handleStateChange?.({
+        status: 'fetched',
+        msg: `load data from url succeed`
+      })
+      res(workflowPipe(bufferData, 'handleBufferData', options))
     })
   })
 }
 
-async function handleFilesDrop(data: any, options?: any) {
-  if (data?.files?.length > 1) {
-    return Promise.all(data?.files.map((file: any) => workflowPipe(file, 'fileParse', options)))
+async function handleBufferData(data: any, options?: any) {
+  try {
+    const respDataString = new TextDecoder().decode(data)
+    const respData = JSON.parse(respDataString)
+    return workflowPipe(respData, 'validateData', options)
+  } catch(e) {
+    return workflowPipe('buffer data parse error', 'error', options)
   }
-  return workflowPipe(data.files[0], 'fileParse', options)
+}
+
+async function handleFilesDrop(data: any, options?: any) {
+  options?.handleStateChange({
+    from: 'local drop',
+  })
+  if (data?.length > 1) {
+    return Promise.all(data?.map((file: any) => workflowPipe(file, 'fileParse', options)))
+  }
+  return workflowPipe(data[0], 'fileParse', options)
 }
 
 const FileFormatMap = [
@@ -91,6 +109,10 @@ const FileFormatMap = [
 ]
 
 async function fileParse(data: any, options?: any) {
+  options?.handleStateChange({
+    msg: 'got to parse file',
+    status: 'parsing'
+  })
   const filename = data.name.toLowerCase();
   for (let i = 0; i < FileFormatMap.length; i++) {
     const {format, parse} = FileFormatMap[i];
@@ -98,14 +120,29 @@ async function fileParse(data: any, options?: any) {
       return parse(data, options)
     }
   }
-  return {
-    err: 'unsupport file format'
-  }
+  return workflowPipe('file format is not supportted', 'error', options)
 }
 
 async function readFile(data: any, options?: any){
-  const result = await asyncResp("file content string")
-  return workflowPipe(result, 'parseData', options)
+  options?.handleStateChange({
+    msg: 'start reading dropped file',
+    status: 'reading'
+  })
+  return new Promise((res) => {
+
+    const reader = new FileReader();
+    reader.onprogress = function(e) {
+    }
+    reader.onloadend = function(e) {
+      const result = e?.target?.result;
+      options?.handleStateChange({
+        msg: 'file alread read',
+        status: 'readDone'
+      })
+      res(workflowPipe(result, 'handleBufferData' ,options))
+    }
+    reader.readAsArrayBuffer(data);
+  })
 }
 
 async function unzipFile(data:any, options?: any) {
@@ -134,7 +171,40 @@ export function validUrl(input:string) {
   try {
     url = new URL(input);
   } catch (_) {
-    return false;  
+    return false;
   }
   return url.protocol === "http:" || url.protocol === "https:";
+}
+
+function getUrlInfo(input: string) {
+  return new URL(input);
+}
+
+export function getInitOptions({
+  handleTaskStateChange,
+  otherOptions,
+}: {
+  handleTaskStateChange: (v:any, d:any) => void
+  otherOptions?: any
+}) {
+  const options = {
+    handleStateChange: (state:any) => handleTaskStateChange(options, state),
+    ...(otherOptions || {})
+  }
+  return options;
+}
+
+function handleRenderData(data: any, options: any) {
+  options?.handleStateChange({
+    data,
+    msg: 'displaying data~~~',
+    status: 'done'
+  })
+}
+
+function handleError(data: any, options: any) {
+  options?.handleStateChange({
+    msg: data,
+    status: 'error'
+  })
 }
