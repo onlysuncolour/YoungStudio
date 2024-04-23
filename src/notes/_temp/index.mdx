@@ -1,0 +1,259 @@
+---
+title: "未整理的一些code"
+date: "2024-04-23"
+spoiler: "ing"
+---
+
+## 服务端做接口转发并且流式输入流式输出
+
+```typescript
+function iteratorToStream(url: string) {
+  const dataStream = fetchData(url);
+  let streamNext = dataStream.next
+  return new ReadableStream({
+    async pull(controller) {
+      // @ts-ignore
+      const { chunk, done, next } = await streamNext
+      streamNext = next;
+      controller.enqueue(Buffer.from(chunk))
+      if (done) {
+        setTimeout(() => {
+          controller.close()
+        }, 1000)
+      }
+    },
+  })
+}
+
+function fetchData(url: string) {
+  let res:any, length = 0, curLength = 0;
+  function nextResHandler(resFn: any) {
+    res = resFn
+  }
+  fetch(url).then(function(response) {
+    length = Number(response.headers.get("content-length")) || 0;
+    return response.arrayBuffer();
+  }).then(function(chunk) {
+    curLength += chunk.byteLength;
+    res({
+      chunk,
+      next: new Promise(res => nextResHandler(res)),
+      done: curLength >= length
+    })
+  })
+  return {next: new Promise(res => nextResHandler(res))}
+}
+ 
+export async function POST() {
+  const stream = iteratorToStream('url')
+  return new Response(stream)
+}
+```
+
+## schema 校验 
+
+```typescript
+const schemaDefinitions = {
+  data: {
+    type: 'object',
+    properties: {
+      timestamp: {
+        type: 'number',
+      },
+      version: {
+        type: 'string'
+      },
+      current: {
+        type: 'string'
+      },
+      playback: {
+        type: '__playback',
+        required: false,
+      },
+      entries: {
+        type: 'array',
+        required: true,
+        items: {
+          type: '__entry'
+        }
+      }
+    }
+  },
+  playback: {
+    type: 'object',
+    properties: {
+      isPlaying: { type: 'boolean' },
+      nextSnapshotDelayInMs: { type: 'number' }
+    }
+  },
+  entry: {
+    type: 'object',
+    properties: {
+      timestamp: { type: 'number' },
+      snapshot: { type: '__snapshot' }
+    }
+  },
+  snapshot: {
+    type: 'object',
+    properties: {
+      id: { type: 'string' }
+    }
+    // data: snapshotData,
+  }
+}
+
+const BasicTypes = [
+  'string', 'boolean', 'number'
+]
+
+function validRequired(data: any, def: any) {
+  if (def.required && data === undefined) {
+    return false
+  } 
+  return true
+}
+
+function validBasic(data: any, type: string) {
+  if (type === 'string' && !validString(data)) {
+    return false
+  } else if (type === 'boolean' && !validBoolean(data)) {
+    return false
+  } else if (type === 'number' && !validNumber(data)) {
+    return false
+  }
+  return true
+}
+
+function validString(data:any) {
+  if (data === undefined) {
+    return true
+  }
+  return typeof data === 'string'
+}
+
+function validBoolean(data:any) {
+  if (data === undefined) {
+    return true
+  }
+  return typeof data === "boolean"
+}
+function validNumber(data:any) {
+  if (data === undefined) {
+    return true
+  }
+  return typeof data === "number"
+}
+
+function validArray(data: any, prop: any) {
+  if (data !== undefined && !Array.isArray(data)) {
+    return false
+  }
+  for (let i = 0; i < data.length; i++) {
+    const _data = data[i];
+    if (BasicTypes.includes(prop.type)) {
+      if (!validBasic(_data, prop.type)) {
+        return false
+      }
+    } else if (prop.type === 'array') {
+      if (!validArray(_data, prop.items)) {
+        return false
+      }
+    } else if (prop.type.startsWith('__')) {
+      if (!validateSchema(_data, prop.type.substring(2, prop.type.length))) {
+        return false
+      }
+    }
+    return true
+  }
+}
+
+export default function validateSchema(data: any, def: string) {
+  // @ts-ignore
+  const curDef = schemaDefinitions[def]
+  const props = Object.keys(curDef.properties);
+  for (let i = 0; i < props.length; i++) {
+    const propName = props[i],
+      prop = curDef.properties[propName],
+      propValue = data[propName];
+    if (!validRequired(propValue, prop)) {
+      return false
+    }
+    if (BasicTypes.includes(prop.type)) {
+      if (!validBasic(propValue, prop.type)) {
+      return false
+      }
+    } else if (prop.type === 'array') {
+      if (!validArray(propValue, prop.items)) {
+      return false
+      }
+      return true
+    } else if (prop.type.startsWith('__')) {
+      if (!validateSchema(data[propName], prop.type.substring(2, prop.type.length))) {
+      return false
+      }
+    }
+  }
+  return true
+}
+```
+
+## 接口调用获得流式数据/buffer数据
+
+```typescript
+let bufferData;
+fetch(request)
+  .then(function(response) {
+    length = Number(response.headers.get("content-length")) || 0;
+    return response.arrayBuffer();
+}).then(function(chunk) {
+  if (!bufferData) {
+    bufferData = chunk;
+  } else {
+    bufferData = Buffer.concat([bufferData, chunk]);
+  }
+}).finally(async () => {
+  // bufferData
+})
+```
+
+## transform buffer data to string & json
+```typescript
+const respDataString = new TextDecoder().decode(data)
+const respData = JSON.parse(respDataString)
+```
+
+## handle file drag & drop
+```tsx
+function handleFileDrop(file) {
+  return new Promise((res) => {
+    const reader = new FileReader();
+    reader.onprogress = function(e) {
+    }
+    reader.onloadend = function(e) {
+      const result = e?.target?.result;
+      res(result)
+    }
+    reader.readAsArrayBuffer(file);
+  })
+}
+
+function app() {
+  const handleDragEnter = () => {}
+  const handleDragLeave = () => {}
+
+  const handleDragOver = (e: any) => {
+    e.preventDefault()
+    e.stopPropagation();
+  }
+  const handleDrop = (e: any) => {
+    e.preventDefault()
+    e.stopPropagation();
+    handleFileDrop(e.dataTransfer.files[0])
+  return <div
+    onDragEnter={handleDragEnter}
+    onDragOver={handleDragOver}
+    onDragLeave={handleDragLeave}
+    onDrop={handleDrop}
+  ></div>
+}
+```
