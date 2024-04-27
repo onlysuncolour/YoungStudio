@@ -44,4 +44,52 @@ spoiler: "ing"
 
 配置项类型的属性差不多就这些。当然还有一些其他的，后面再讲到。
 
-##
+配置接口文件大概就如下
+
+```typescript
+type TPageLocate =
+  | 'search'
+  | 'header'
+  | 'toolbar'
+  | 'chart';
+
+type TConfigType =
+  | 'input'
+  | 'switch'
+  | 'select'
+  | 'header';
+
+type TConfigBasic = {
+  type: TConfigType;
+  key?: string;
+  title?: string;
+  errorTitle?: string; // 隐藏的title，用于报错提示
+  props?: any;
+  enabled?: string;
+  keyDeps?: TTgaConfigKeyDep[];
+  pageLocate?: TTgaPageLocate;
+  required?: boolean;
+};
+```
+
+## 写组件
+
+已经理清了配置项的内容，下面就开始完成一个配置化的组件。
+
+下面是一个ConfiguableInput的例子
+
+```tsx
+type TInputConfigProps = {
+  bordered?: boolean;
+}
+
+type TConfigComponentProps = {
+  config: TConfigBasic,
+  
+}
+const ConfiguableInput:FC<TConfigComponentProps> = ({
+
+}) => {
+
+}
+```
