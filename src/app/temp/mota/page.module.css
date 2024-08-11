@@ -1,0 +1,60 @@
+.root {
+
+}
+.container {
+  /* display: flex;
+    flex-direction: row; */
+}
+.hero {
+  flex-grow: 1;
+  flex-shrink: 0;
+  line-height: 30px;
+}
+.heroInfoItem {
+
+}
+.heroInfoTitle {
+  width: 32px;
+  display: inline-block;
+}
+.heroInfoInput {
+
+}
+.heroAddTitle {
+  display: inline-block;
+  width: 48px;
+  font-size: 12px;
+  margin-left: 12px;
+}
+.heroAddInput {
+
+}
+.heroAddBtn {
+
+}
+.enemies {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-right: 96px;
+  padding: 12px;
+}
+.enemyBtn {
+  height: 24px;
+  margin-right: 12px;
+  margin-bottom: 8px;
+}
+.result {
+
+}
+.submitBtn {
+  width: 200px;
+  height: 32px;
+  margin-left: 24px;
+}
+
+.calcAll {
+  width: 200px;
+  height: 32px;
+  margin-left: 24px;
+}
