@@ -12,3 +12,14 @@ spoiler: "ing"
 ## CD流程
 ### 手动部署的流程
 
+
+
+
+
+## 坑
+
+### docker login
+docker login 命令 在docker里面不起作用，不能正确的保存token  
+正常机器里，token保存在 /.docker/config.json  
+但是docker机里面，要保存在 /root/.docker/config.json  
+命令行里面获得的token，末尾还多了个 \n 也要注意给去掉   
