@@ -10,10 +10,90 @@ spoiler: "ing"
 虽然市面上也有很多类似的产品，笔者这次还很稚嫩的尝试大家也可以参考一下～～
 
 ## CD流程
-### 手动部署的流程
+
+在这里，我们将从最简单的部署任务走到相对完善的CD流程。
+
+### 在本地的纯手动部署
+我们先从最简单的部署流程开始  
+
+在这里用缩略的命令来表示
+
+1. docker build
+2. docker tag && docker push
+3. ssh remote server
+4. docker pull
+5. docker stop
+6. docker remove
+7. docker run
+
+### 在一个干净的环境手动部署
+稍微复杂一点：在一个干净的环境，只有最基本的docker、各种系统命令，我们该怎么进行部署。
+
+1. 首先，最重要的就是把代码拉下来。  
+
+  使用git命令是可以的，在这里选择使用 curl gitlab/github的下载指定repo的指定branch/tag/commit的url。   
+  这里需要提前在gitlab/github设置access_token，及找到指定repo的projectId。  
+  这里可以指定下载的文件格式，比如.zip,.tar 等等
+
+2. 下载repo压缩包之后，下一步就是解压。
+
+3. docker build && docker tag
+4. 这里继续遇到另外一个问题，docker push 需要登陆，这里有两种登陆方法
+
+	i. 执行docker login命令
+	ii. 写docker token到 /.docker/config.json
+  一般可以选择第一种，在一些特殊情况下，可以使用第二种方法
+
+5. docker登陆之后就可以docker push
+6. 同样的 ssh 到 具体的远程服务器上
+7. docker登陆，docker pull，docker stop && docker remove 最后 docker run 就结束了。
+
+### 用nodejs实现上面的流程
+再复杂一点就是，用nodejs实现上面的流程
+
+1. 用nodejs，可以选择 exec 来执行命令行，也可以选择 spawn。  
+
+  这两个有点细微的区别。我在使用中，感觉 exec 并不能很好的辨别命令行执行是否失败。
+2. ssh 部分，可以选择 ssh2 或者 nodejs/ssh。  
+
+  这两个也有些许细微区别，在尝试了ssh2之后，我选择了 node-ssh。  
+  当时的原因大概是 node-ssh的体积要小很多
+
+实现这一步还是比较简单的。
+
+### 将这个Nodejs项目打包成docker镜像进行部署
+接下来可以再深入一点，将我们的项目打包成docker 镜像，部署上去。
 
 
+可能会有同学疑惑，上一步能够执行成功的话，打包成docker镜像，肯定也能成功呀。
 
+这儿是有一些case：
+
+1. docker镜像的内部环境，我们需要将 docker、curl、unzip 等安装到docker镜像内部。
+2. 启动docker时，需要添加 建立docker 通道的参数。使docker容器内的docker可以访问到宿主机的docker。  
+  参数是  -v /var/run/docker.sock:/var/run/docker.sock
+3. docker login，需要采用 写入docker token到docker config.json里面。  
+  docker容器的环境和正常服务器有区别，docker login命令无法成功。
+
+适配一下上述的情况，就可以很便捷的使用docker部署在服务器上了。
+
+### What's more?
+上述项目部署之后，基本上就可以稳定了。当然，我们能做的还有很多。
+
+1. 镜像管理  
+  i. 镜像的版本，可以用随机的uuid  
+  ii. 可以区分生产版本、测试版本、开发版本，生产版本的镜像做持续性保存，测试版本保存最近一段时间的，开发版本的不做保存。
+2. 日志管理  
+  i. 笔者在这部分是将关键日志信息保存到数据库里。  
+  ii. 具体的日志，暂时没有做保存，后续可以考虑用elk、logstash、filebeat等日志收集工具。
+3. 流水线和任务  
+  上述实现的流程，实际上是一个具体的任务。  
+  我们需要抽象出来流水线，设定好既定的配置。  
+  任务是流水线的一个extend，比如说，任务需要配置具体的 git repo branch、发布到的远程服务器等等。  
+4. 参数变量  
+  这里特指部署任务的参数变量。
+5. 权限  
+  这里除了一般的配置权限，也可以考虑权限继承，比如说具有流水线权限的，可以继承到任务权限。
 
 
 ## 坑
