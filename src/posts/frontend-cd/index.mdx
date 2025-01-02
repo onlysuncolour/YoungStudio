@@ -103,3 +103,32 @@ docker login 命令 在docker里面不起作用，不能正确的保存token
 正常机器里，token保存在 /.docker/config.json  
 但是docker机里面，要保存在 /root/.docker/config.json  
 命令行里面获得的token，末尾还多了个 \n 也要注意给去掉   
+
+## mysql remote login
+```
+vim /etc/mysql/mysql.conf.d/mysqld.cnf
+
+change bind-address = 127.0.0.1
+to bind-address = 0.0.0.0
+```
+
+## mysql create remote user
+```mysql
+CREATE USER 'remote'@'%' IDENTIFIED BY 'mm123';
+GRANT ALL PRIVILEGES ON *.* TO 'remote'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+```
+
+## 启动docker with env
+```bash
+docker run -e VAR1=value1 -e VAR2=value2 my-docker-image
+```
+or
+```text
+.env
+VAR1=value1
+VAR2=value2
+```
+```bash
+docker run --env-file .env my-docker-image
+```
