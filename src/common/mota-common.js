@@ -84,3 +84,7 @@ test();
 
 // https://h5mota.com/games/51_slimedig/
 // seed: 20628118, count2: 14, count3: 4
+// seed: 34216892, count2: 14, count3: 8
+// seed: 96343743, count2: 13, count3: 6
+// seed: 103140533, count2: 14, count3: 5
+
