@@ -124,17 +124,48 @@ function getDataBySeed(seed, callback, nextRand = 0) {
 
 
 const requires = {
-  2: ['woman', 'man'],
+  2: ['woman'],
   5: ['sword1'],
-  17: ['sword2'],
-  33: ['sword3'],
+  // 17: ['sword2'],
+  // 33: ['sword3'],
   48: ['sword4'],
   13: ['sword5'],
-  9: ['shield1'],
+  // 9: ['shield1'],
   11: ['shield2'],
   38: ['shield3'],
   43: ['shield4'],
   44: ['shield5'],
+}
+
+const options = {
+  1: 'bluePotion',
+  2: 'bluePotion',
+  3: 'bluePotion',
+  4: 'bluePotion',
+  7: 'bluePotion',
+  8: 'bluePotion',
+  10: 'bluePotion',
+  11: 'bluePotion',
+  12: 'bluePotion',
+  15: 'bluePotion',
+  17: 'bluePotion',
+  20: 'bluePotion',
+  31: 'bluePotion',
+  32: 'bluePotion',
+  33: 'bluePotion',
+  34: 'bluePotion',
+  35: 'bluePotion',
+  36: 'bluePotion',
+  37: 'bluePotion',
+  38: 'bluePotion',
+  40: 'bluePotion',
+  41: 'bluePotion',
+  42: 'bluePotion',
+  43: 'bluePotion',
+  45: 'bluePotion',
+  46: 'redPotion',
+  46: 'redPotion',
+  48: 'bluePotion',
 }
 
 function getResult(seed) {
@@ -157,7 +188,8 @@ function getResult(seed) {
       var select1 = rand(ranList.length);
       if (requires[z]) {
         if (!requires[z].includes(ranList[select1])) {
-          flag --
+          return false
+          // flag --
         }
       }
 
