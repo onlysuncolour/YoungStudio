@@ -1,0 +1,143 @@
+---
+title: "chatGPT的流式输出，表单数据的流式展示"
+date: "2025-02-24"
+spoiler: "ing"
+---
+
+## 背景
+
+在开发基于AI大模型的应用时，我们经常会遇到一个常见的问题：大模型的响应通常是流式的，特别是当响应内容是JSON格式时，在完整响应到达之前，JSON数据是不完整且无法解析的。这会导致用户体验不佳，因为用户需要等待整个响应完成才能看到任何内容。
+
+## 问题分析
+
+在实际应用中，我们观察到以下几个特点：
+
+1. JSON数据的不完整部分总是出现在最后
+2. 不完整的情况主要包括：
+   - 键（key）不完整
+   - 值（value）不完整
+   - 括号或引号不配对
+3. 有时响应会被 \`\`\`json \`\`\` 包裹，有时则是原始JSON
+
+## 解决方案
+
+为了提升用户体验，我们需要在接收到不完整的JSON数据时，通过补全的方式使其可用，从而实现实时展示。这样用户就能看到数据逐步填充的过程，而不是一直等待到最后。
+
+### 核心思路
+
+1. 实时接收流式数据
+2. 对不完整的JSON进行补全
+3. 解析并展示补全后的数据
+
+### 实现细节
+
+#### 1. JSON补全逻辑
+
+```typescript
+function completeJSON(input: string): object | Array<any> {
+    let str = preprocess(input);
+    str = completeKeyAndValue(str);
+    str = completeBrackets(str);
+    str = fixTrailingComma(str);
+    
+    return JSON.parse(str);
+}
+
+function preprocess(s: string): string {
+    // 去除头尾的```和换行
+    return s.replace(/^```(json)?|```$/g, '')
+           .replace(/\n/g, ' ')
+           .trim();
+}
+
+function completeKeyAndValue(s: string): string {
+    // 处理未闭合的键
+    const keyRegex = /(?:{|,)\s*"([^"\\]*(\\.[^"\\]*)*)$/;
+    if (keyRegex.test(s)) {
+        s += '":null';
+    }
+
+    // 处理以冒号结尾的情况
+    const colonEndRegex = /:\s*$/;
+    if (colonEndRegex.test(s)) {
+        s += 'null';
+    }
+
+    // 处理未闭合的字符串值
+    const stringRegex = /(?<!\\)"([^"\\]*(\\.[^"\\]*)*)$/;
+    if ((s.match(/"/g) || []).length % 2 !== 0) {
+        s += '"';
+    }
+
+    // 补全布尔/null值
+    const partialValueMatch = s.match(/(true|false|null|tr?u?e?|fa?l?s?e?|nu?l?l?)$/);
+    if (partialValueMatch) {
+        const val = partialValueMatch[0];
+        if (val.startsWith('t')) s += 'rue'.slice(val.length);
+        else if (val.startsWith('f')) s += 'alse'.slice(val.length);
+        else if (val.startsWith('n')) s += 'ull'.slice(val.length);
+    }
+
+    return s;
+}
+
+function completeBrackets(s: string): string {
+    const stack: string[] = [];
+    const pairs: { [key: string]: string } = { '{': '}', '[': ']' };
+
+    for (const char of s) {
+        if (char === '{' || char === '[') {
+            stack.push(pairs[char]);
+        } else if (char === '}' || char === ']') {
+            if (stack[stack.length - 1] === char) {
+                stack.pop();
+            }
+        }
+    }
+
+    return s + stack.reverse().join('');
+}
+
+function fixTrailingComma(s: string): string {
+    // 移除对象/数组末尾的逗号
+    return s.replace(/,(?=\s*[}\]])/g, '');
+}
+```
+
+#### 2. 数据展示优化
+
+在展示数据时，有一个重要的优化点：为每条数据添加唯一且稳定的key。这里特别需要注意：
+
+- ⚠️ 不要使用动态生成的key（如随机数或时间戳）
+- ⚠️ 避免在每次JSON重新解析时生成新的key
+- ✅ 最好使用数据本身的某些固定属性作为key，或者数据的嵌套index作为key
+
+这是因为在React等现代框架中，如果使用动态生成的key，每次重新解析JSON都会导致整个列表重新渲染，这会严重影响性能和用户体验。
+
+## 使用示例
+
+```typescript
+export function makeInitialData(
+  children: TdataInit[],
+  uuidPrefix = '0-'
+) {
+  children.forEach((data, index) => {
+    data.uuid = `${uuidPrefix}${index}`;
+    if (data.children) {
+      makeInitialchildren(data.children, `${data.uuid}-`)
+    }
+  })
+  return children
+}
+
+```
+
+## 注意事项
+
+1. 性能考虑：补全逻辑应该尽可能简单高效
+2. 错误处理：需要考虑各种异常情况
+3. 用户体验：确保UI渲染流畅，避免闪烁
+
+## 总结
+
+通过实现JSON流式数据的补全和优化展示策略，我们可以显著提升用户体验。用户不再需要等待完整的响应，而是能够看到数据的逐步填充过程。这种方案特别适合于AI应用中的实时数据展示场景。
