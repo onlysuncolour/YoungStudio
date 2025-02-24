@@ -337,8 +337,8 @@ test()
 
 
 // utils.prototype.__init_seed = function() {
-//   core.setFlag("__seed__", 5603);
-//   core.setFlag("__rand__", 5603)
+//   core.setFlag("__seed__", 201180659);
+//   core.setFlag("__rand__", 201180659)
 // }
 
 // 全随机
