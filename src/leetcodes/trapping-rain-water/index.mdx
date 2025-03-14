@@ -52,14 +52,58 @@ var trap = function(heights) {
           flag = false
         }
       }
-        left[i] = 1;
-        leftMap[i] = h
+      left[i] = 1;
+      leftMap[i] = h
     }
   })
   return result;
 };
 ```
 
+
+超出时间限制的一个解法
+2025-3-14
+```javascript
+/**
+ * @param {number[]} height
+ * @return {number}
+ */
+var trap = function(heights) {
+  let left = 0, leftHeights = [...heights];
+  leftHeights.shift();
+  let result = 0;
+  while (left < heights.length) {
+    if (heights[left] === 0) {
+      left ++;
+      leftHeights.shift();
+      continue;
+    }
+    let next = leftHeights.findIndex(h => h >= heights[left]);
+    if (next === -1) {
+      const biggestNum = Math.max(...leftHeights);
+      const biggestIndex = leftHeights.indexOf(biggestNum);
+      next = biggestIndex;
+    }
+    if (next === 0) {
+      left++;
+      leftHeights.shift();
+      continue;
+    } else if (next === -1) {
+      break;
+    }
+    let _result = Math.min(heights[left], leftHeights[next]) * (next);
+    for (let i = 0; i < next; i++) {
+      _result -= leftHeights[i]
+    }
+    result += _result;
+    left += next;
+    leftHeights.splice(0, next);
+  }
+  return result;
+};
+
+```
 ## 分析
 
-忘了。以后再补
+第一个解法忘了 =。=
+第二个解法 找下一个可选的柱子的方法，不好找。
