@@ -130,6 +130,61 @@ spoiler: "726 困难"
   };
 ```
 
+2025-03-14
+```javascript
+/**
+ * @param {string} formula
+ * @return {string}
+ */
+var countOfAtoms = function(formula) {
+    let result = {}, stack = [], curAtom = '', curNum = '', stackPop = undefined;
+
+    function setAtom() {
+      if (curAtom) {
+        if (stack.length > 0) {
+          const last = stack[stack.length - 1];
+          last[curAtom] = (last[curAtom] || 0) + (curNum ? parseInt(curNum) : 1);
+        } else {
+          result[curAtom] = (result[curAtom] || 0) + (curNum ? parseInt(curNum) : 1);
+        }
+        curAtom = '';
+        curNum = '';
+      } else if (stackPop) {
+        if (stack.length > 0) {
+          const last = stack[stack.length - 1];
+          Object.keys(stackPop).forEach(key => {
+            last[key] = (last[key] || 0) + stackPop[key] * (curNum ? parseInt(curNum) : 1);
+          })
+        } else {
+          Object.keys(stackPop).forEach(key => {
+            result[key] = (result[key] || 0) + stackPop[key] * (curNum ? parseInt(curNum) : 1);
+          })
+        }
+        stackPop = undefined;
+        curNum = '';
+      }
+    }
+    formula.split('').forEach(c => {
+      if (c === '(') {
+        setAtom()
+        stack.push({})
+      } else if (c === ')') {
+        setAtom()
+        stackPop = stack.pop();
+      } else if (c >= '0' && c <= '9') {
+        curNum += c;
+      } else if (c >= 'A' && c <= 'Z') {
+        setAtom()
+        curAtom += c;
+      } else if (c >= 'a' && c <= 'z') {
+        curAtom += c;
+      }
+    })
+    setAtom()
+    return Object.keys(result).sort().map(key => `${key}${result[key] > 1 ? result[key] : ''}`).join('');
+};
+```
+
 ## 分析
 
 忘了。以后再补
