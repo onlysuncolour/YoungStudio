@@ -1,0 +1,122 @@
+---
+title: "单词接龙"
+date: "2025-05-13"
+spoiler: "127 困难"
+---
+
+[leetcode-单词接龙](https://leetcode.cn/problems/word-ladder/description/)
+
+## 题目描述
+
+字典 wordList 中从单词 beginWord 到 endWord 的 转换序列 是一个按下述规格形成的序列 beginWord -> s1 -> s2 -> ... -> sk：
+
+每一对相邻的单词只差一个字母。    
+ 对于 1 \<= i \<= k 时，每个 si 都在 wordList 中。注意， beginWord 不需要在 wordList 中。  
+sk == endWord  
+给你两个单词 beginWord 和 endWord 和一个字典 wordList ，返回 从 beginWord 到 endWord 的 最短转换序列 中的 单词数目 。如果不存在这样的转换序列，返回 0 。  
+
+ 
+示例 1：
+
+输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log","cog"]  
+输出：5  
+解释：一个最短转换序列是 "hit" -> "hot" -> "dot" -> "dog" -> "cog", 返回它的长度 5。  
+
+
+示例 2：
+
+输入：beginWord = "hit", endWord = "cog", wordList = ["hot","dot","dog","lot","log"]  
+输出：0  
+解释：endWord "cog" 不在字典中，所以无法进行转换。  
+ 
+
+提示：
+
+1 \<= beginWord.length \<= 10  
+endWord.length == beginWord.length  
+1 \<= wordList.length \<= 5000  
+wordList[i].length == beginWord.length  
+beginWord、endWord 和 wordList[i] 由小写英文字母组成  
+beginWord != endWord  
+wordList 中的所有字符串 互不相同  
+
+## 本人题解
+
+```typescript
+function ladderLength(beginWord: string, endWord: string, wordList: string[]): number {
+    if (!wordList.includes(endWord)) {
+        return 0;
+    }
+    const wordMap: Record<string, string[]> = {
+      [beginWord]: []
+    }
+
+    function setWordMap(word, nextWord, reverse = true) {
+      let curWordMap = wordMap[word];
+      if (!curWordMap) {
+        curWordMap = [];
+        wordMap[word] = curWordMap;
+      }
+      curWordMap.push(nextWord);
+      if (reverse) {
+        setWordMap(nextWord, word, false);
+      }
+    }
+
+    for (let i = 0; i < wordList.length; i++) {
+      const curWord = wordList[i];
+      if (isOneEditDistance(beginWord, curWord)) {
+        setWordMap(beginWord, curWord);
+      }
+      for (let j = i + 1; j < wordList.length; j++) {
+        const nextWord = wordList[j];
+        if (isOneEditDistance(curWord, nextWord)) {
+          setWordMap(curWord, nextWord);
+        }
+      }
+    }
+    return breadthFirstSearch(wordMap, beginWord, endWord);
+};
+
+function breadthFirstSearch(wordMap: Record<string, string[]>, beginWord: string, endWord: string): number {
+  let queues: string[][] = [[beginWord]];
+  let usedWords: string[] = [beginWord];
+  while(true) {
+    let _queues: string[][] = [];
+    for (let i = 0; i < queues.length; i++) {
+      const curQueue = queues[i];
+      const curWord = curQueue[curQueue.length - 1];
+      const nextWords = wordMap[curWord];
+      if (nextWords.includes(endWord)) {
+        return curQueue.length + 1;
+      }
+      _queues.push(...nextWords.filter(word => !usedWords.includes(word)).map(word => {
+        usedWords.push(word);
+        return [...curQueue, word]
+      }));
+    }
+    queues = _queues;
+    if (queues.length === 0) {
+      return 0; 
+    }
+  }
+}
+
+function isOneEditDistance(word1: string, word2: string): boolean {
+    if (word1.length !== word2.length) {
+        return false;
+    }
+    let count = 0;
+    for (let i = 0; i < word1.length; i++) {
+      if (word1[i] !== word2[i]) {
+        count++;
+      }
+    }
+    return count === 1;
+}
+
+```
+
+
+## 分析
+先构建一个单词图，然后进行广度优先搜索。
