@@ -1,0 +1,157 @@
+---
+title: "合并K个升序链表"
+date: "2025-4-25"
+spoiler: "23 困难"
+---
+
+[leetcode-合并K个升序链表](https://leetcode.cn/problems/merge-k-sorted-lists/description/)
+## 题目描述
+给你一个链表数组，每个链表都已经按升序排列。
+
+请你将所有链表合并到一个升序链表中，返回合并后的链表。
+
+示例 1：  
+  
+输入：lists = [[1,4,5],[1,3,4],[2,6]]  
+输出：[1,1,2,3,4,4,5,6]  
+解释：链表数组如下：  
+[  
+  1->4->5,  
+  1->3->4,  
+  2->6  
+]  
+将它们合并到一个有序链表中得到。  
+1->1->2->3->4->4->5->6  
+  
+  
+示例 2：  
+  
+输入：lists = []  
+输出：[]  
+
+
+示例 3：  
+  
+输入：lists = [[]]  
+输出：[]  
+   
+  
+提示：  
+  
+k == lists.length  
+0 \<= k \<= 10<sup>4</sup>  
+0 \<= lists[i].length \<= 500  
+-10<sup>4</sup> \<= lists[i][j] \<= 10<sup>4</sup>  
+lists[i] 按 升序 排列  
+lists[i].length 的总和不超过 10<sup>4</sup>  
+
+
+```javascript
+// 参数
+/**
+ * 
+ * Definition for singly-linked list.
+ * function ListNode(val, next) {
+ *     this.val = (val===undefined ? 0 : val)
+ *     this.next = (next===undefined ? null : next)
+ * }
+ */
+/**
+ * @param {ListNode[]} lists
+ * @return {ListNode}
+ */
+```
+
+## 本人题解
+
+```javascript
+// 这个方式是，每次都找最小的节点，然后插入到新的链表中
+// 将每个链的第一个节点进行排序，使用了的链，移除第一个节点后，重新排序进去。
+var mergeKLists = function(lists) {
+  lists = lists.filter(list => !!list)
+  if (lists.length === 0) {
+    return null
+  }
+  const fullList = {
+    list: null,
+    next: {list: lists.pop(), next: null}
+  }
+  lists.forEach(list => {
+    insertListNode(fullList, list)
+  })
+  let result = {
+    next: null
+  }, curNode = result
+  while(true) {
+    if (fullList.next) {
+      const listNode = fullList.next;
+      fullList.next = listNode.next;
+      const list = listNode.list;
+      curNode.next = list;
+      curNode = curNode.next;
+      insertListNode(fullList, list.next);
+    } else {
+      break
+    }
+  }
+  return result.next
+};
+
+function insertListNode(fullList, list) {
+  if (!!list) {
+    let preNode = fullList
+    while(true) {
+      const nextNode = preNode.next;
+      if (!nextNode) {
+        preNode.next = {
+          list: list,
+          next: null
+        }
+        break;
+      } else if (list.val < nextNode.list.val) {
+        preNode.next = {
+          list: list,
+          next: nextNode
+        }
+        break;
+      }
+      preNode = nextNode;
+    }
+  }
+}
+```
+
+```javascript
+// 这个方式就是最简单粗暴的，将每个链表的节点值和节点进行关联，然后对节点值进行排序，然后进行合并
+var mergeKLists = function(lists) {
+  var obj = {};
+  lists.forEach(list => {
+    while(list) {
+      const next = list.next
+      if (obj[list.val]) {
+        list.next = obj[list.val][0]
+        obj[list.val].unshift(list)
+      } else {
+        obj[list.val] = [list]
+        list.next = null
+      }
+      list = next
+    }
+  })
+  const result = {
+    next: null
+  }
+  let curNode = result
+  Object.keys(obj).map(Number).sort(((a, b) => a-b)).forEach(key => {
+    curNode.next = obj[key][0]
+    curNode = obj[key].pop()
+  })
+  return result.next
+}
+```
+
+## 分析
+
+好好想的解法，复杂度反而比较高。
+
+简单粗暴的解法，复杂度反而要低很多。
