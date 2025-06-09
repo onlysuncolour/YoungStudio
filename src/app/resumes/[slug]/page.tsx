@@ -25,5 +25,5 @@ export default async function PostPage({
     }
   }
 
-  return <MyMdx post={post} postComponents={postComponents} style={styles} />
+  return <MyMdx post={post} className={styles.myMdx} postComponents={postComponents} style={styles} />
 }

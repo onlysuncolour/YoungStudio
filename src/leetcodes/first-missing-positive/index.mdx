@@ -50,6 +50,24 @@ var firstMissingPositive = function(nums) {
 };
 ```
 
+第二次 2025-3-14
+```javascript
+/**
+ * @param {number[]} nums
+ * @return {number}
+ */
+var firstMissingPositive = function(nums) {
+    let arr = [true]
+    nums.forEach(num => {
+      if (num > 0) {
+        arr[num] = true
+      }
+    })
+    let result = arr.findIndex(item => item === undefined)
+    return result === -1 ? arr.length : result
+};
+```
+
 ## 分析
 
 忘了。以后再补

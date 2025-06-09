@@ -70,6 +70,38 @@ var getPermutation = function(n, k) {
 };
 ```
 
+
+第二次 2025-3-14
+```javascript
+var getPermutation = function(n, k) {
+  const nums = [1,2,3,4,5,6,7,8,9]    
+  const sort1 = 1, sort2 = sort1 * 2, sort3 = sort2 * 3, sort4 = sort3 * 4, sort5 = sort4 * 5, sort6 = sort5 * 6, sort7 = sort6 * 7, sort8 = sort7 * 8, sort9 = sort8 * 9;
+  const sortMap = {
+    1: sort1,
+    2: sort2,
+    3: sort3,
+    4: sort4,
+    5: sort5,
+    6: sort6,
+    7: sort7,
+    8: sort8,
+    9: sort9,
+  }
+  let result = ""
+  while (n > 1) {
+    let index = Math.ceil(k / (sortMap[n - 1]))
+    k = k % (sortMap[n - 1])
+    if (index === 0) {
+      index = n
+    }
+    result += nums[index - 1]
+    nums.splice(index - 1, 1)
+    n--
+  }
+  result += nums[0]
+  return result;
+};
+
 ## 分析
 
 忘了。以后再补

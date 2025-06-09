@@ -9,17 +9,19 @@ type TMyMdxProps = {
   post: any,
   postComponents: any,
   style?: any
+  className?: string
 }
 export default function MyMdx({
   post,
   postComponents,
   style,
+  className
 }: TMyMdxProps) {
 
   const words = getPostWords(post.content);
   const readTime = readingTime(words);
 
-  return <div className={`${styles.root} ${style?.root || ''}`}>
+  return <div className={`${styles.root} ${style?.root || ''} ${className || ''}`}>
     <article>
       <h1
         className={`${styles.title} ${style?.title || ''}`}

@@ -1,0 +1,42 @@
+---
+title: "发红包"
+date: "2025-03-21"
+spoiler: "不是leetcode的题"
+---
+
+## 题目描述
+
+设计一个算法，给定一个红包金额和红包数量，返回一个红包列表，要求红包金额总和等于给定的金额，并且每个红包金额不小于0.01元。  
+要尽可能的随机。  
+
+
+## 本人题解
+
+```typescript
+const sendRedpocket = (money: number, count: number) => {
+  const dots:number[] = [];
+  while(dots.length < count - 1) {
+    let value = 0;
+    while (value === 0 || dots.includes(value)) {
+      value = parseFloat((Math.random() * money).toFixed(2));
+    }
+    dots.push(value);
+  }
+  dots.sort((a, b) => a - b);
+  const result:number[] = []
+  dots.forEach((dot, index) => {
+    result.push(parseFloat((dot - (index === 0 ? 0 : dots[index - 1])).toFixed(2)))
+  })
+  result.push(parseFloat((money - dots[dots.length - 1]).toFixed(2)))
+  return result;
+}
+
+console.log(sendRedpocket(100, 10))
+```
+
+## 分析
+
+这里是用的线段切割法，先随机生成count-1个点，然后排序，然后计算每个线段的长度，然后返回。  
+
+如果只是单纯的 每次都是 left * Math.random()，那么最后的结果会趋向于 0.01 元。
+

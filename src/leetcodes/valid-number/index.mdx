@@ -8,26 +8,26 @@ spoiler: "65 困难"
 
 ## 题目描述
 
-有效数字（按顺序）可以分成以下几个部分：  
-  
-一个 小数 或者 整数  
-（可选）一个 'e' 或 'E' ，后面跟着一个 整数  
-小数（按顺序）可以分成以下几个部分：  
-  
-（可选）一个符号字符（'+' 或 '-'）  
-下述格式之一：  
-至少一位数字，后面跟着一个点 '.'  
-至少一位数字，后面跟着一个点 '.' ，后面再跟着至少一位数字  
-一个点 '.' ，后面跟着至少一位数字  
-整数（按顺序）可以分成以下几个部分：  
-  
-（可选）一个符号字符（'+' 或 '-'）  
-至少一位数字  
-部分有效数字列举如下：["2", "0089", "-0.1", "+3.14", "4.", "-.9", "2e10", "-90E3", "3e+7", "+6e-1", "53.5e93", "-123.456e789"]  
-  
-部分无效数字列举如下：["abc", "1a", "1e", "e3", "99e2.5", "--6", "-+3", "95a54e53"]  
-  
-给你一个字符串 s ，如果 s 是一个 有效数字 ，请返回 true 。  
+给定一个字符串 s ，返回 s 是否是一个 有效数字。
+
+例如，下面的都是有效数字："2", "0089", "-0.1", "+3.14", "4.", "-.9", "2e10", "-90E3", "3e+7", "+6e-1", "53.5e93", "-123.456e789"，而接下来的不是："abc", "1a", "1e", "e3", "99e2.5", "--6", "-+3", "95a54e53"。
+
+一般的，一个 有效数字 可以用以下的规则之一定义：
+
+一个 整数 后面跟着一个 可选指数。
+一个 十进制数 后面跟着一个 可选指数。
+一个 整数 定义为一个 可选符号 '-' 或 '+' 后面跟着 数字。
+
+一个 十进制数 定义为一个 可选符号 '-' 或 '+' 后面跟着下述规则：
+
+数字 后跟着一个 小数点 .。
+数字 后跟着一个 小数点 . 再跟着 数位。
+一个 小数点 . 后跟着 数位。
+指数 定义为指数符号 'e' 或 'E'，后面跟着一个 整数。
+
+数字 定义为一个或多个数位。
+
+
   
    
   
@@ -62,6 +62,79 @@ var isNumber = function(s) {
     let result = parseFloat(s) == Number(s)
   // console.log(result)
   return result
+};
+```
+
+2025.3.14
+提交了五次错误的 =。=
+```javascript
+/**
+ * @param {string} s
+ * @return {boolean}
+ */
+var isNumber = function(s) {
+  let pe
+  if (s.includes('e')) {
+    pe = s.split('e')
+  } else if (s.includes('E')) {
+    pe = s.split('E')
+  } else {
+    pe = [s]
+  }
+  if (pe.length > 2) {
+    return false
+  } else if (pe.length === 1 && !pe[0]) {
+    return false
+  } else if (pe.length === 2) {
+    if (!pe[0] || !pe[1]) {
+      return false
+    }
+  }
+  let p1Flag = false, // 小数点
+  p1FlagR = false, // 小数点后有数字
+  p2FlagR = pe.length === 2 ? false : true; // e后有数字
+  const p1Arr = pe[0].split('')
+  const p2Arr = (pe[1] || '').split('');
+
+  for (let i = 0; i < p1Arr.length; i++) {
+    const d = p1Arr[i];
+    if ((d === '+' || d === '-') && i === 0) {
+      continue
+    }
+    if ((d === '+' || d === '-') && i !== 0) {
+      return false
+    }
+    if (d === '.') {
+      if (p1Flag) {
+        return false
+      }
+      p1Flag = true
+      continue;
+    }
+    if (d >= '0' && d <= '9') {
+      p1FlagR = true
+      continue
+    }
+    
+    return false
+  }
+
+  for (let i = 0; i < p2Arr.length; i++) {
+    const d = p2Arr[i];
+    if ((d === '+' || d === '-') && i === 0) {
+      continue
+    }
+    if ((d === '+' || d === '-') && i !== 0) {
+      return false
+    }
+    if (d >= '0' && d <= '9') {
+      p2FlagR = true
+      continue
+    }
+    return false
+  }
+  return p1FlagR && p2FlagR
+  
 };
 ```
 
