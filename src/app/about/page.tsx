@@ -63,8 +63,8 @@ export default function About() {
       </div>
     </div>
 
-    <div className={styles.contact}>
+    {/* <div className={styles.contact}>
       请联系我： <a onClick={copyEmail}>iyoungliu@163.com</a>
-    </div>
+    </div> */}
   </div>
 }
