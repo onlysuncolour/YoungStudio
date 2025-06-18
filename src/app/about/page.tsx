@@ -10,7 +10,7 @@ export default function About() {
     message('拷贝成功')
   }
   return <div className={styles.root}>
-    <div className={styles.meTitle}>我是刘召阳</div>
+    <div className={styles.meTitle}>Young Liu</div>
     <div className={styles.blocks}>
 
       <div className={styles.block}>
@@ -56,7 +56,7 @@ export default function About() {
           生活
         </div>
         <div className={styles.content}>
-          <p>准奶爸</p>
+          <p>奶爸</p>
           <p>大厨</p>
           <p>猫奴</p>
         </div>

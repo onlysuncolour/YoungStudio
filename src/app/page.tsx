@@ -16,7 +16,7 @@ export default function Home() {
             </div>
             <div className={styles.intro}>
               <p>{"I'm Young Liu, a front-end developer, located in Shanghai, China."}</p>
-              <p>我是<a href="/about" >刘召阳</a>，一个前端工程师，目前在上海。</p>
+              <p>我是<a href="/about" > Young Liu </a>，一个前端工程师，目前在上海。</p>
             </div>
           </div>
         </div>
