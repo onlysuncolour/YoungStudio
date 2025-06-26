@@ -28,8 +28,8 @@ export default function Layout({ children }: Readonly<{
         <div className={styles.menus}>
           <Link className={styles.menu} href="/">
             <span  className={styles.menuSpan}>Home</span></Link>
-          {/* <Link className={styles.menu} href="/resumes">
-            <span  className={styles.menuSpan}>Resume</span></Link> */}
+          <Link className={styles.menu} href="/resumes">
+            <span  className={styles.menuSpan}>Resume</span></Link>
           <Link className={styles.menu} href="/posts">
             <span  className={styles.menuSpan}>Posts</span></Link>
           <Link className={styles.menu} href="/notes">
