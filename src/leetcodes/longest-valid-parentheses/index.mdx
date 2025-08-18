@@ -1,0 +1,76 @@
+---
+title: "最长有效括号"
+date: "2025-08-18"
+spoiler: "32 困难"
+---
+
+[leetcode-缺失的第一个整数](https://leetcode.cn/problems/longest-valid-parentheses/description/)
+
+## 题目描述
+
+```text
+给你一个只包含 '(' 和 ')' 的字符串，找出最长有效（格式正确且连续）括号 子串 的长度。
+左右括号匹配，即每个左括号都有对应的右括号将其闭合的字符串是格式正确的，比如 "(()())"。
+
+ 
+示例 1：
+输入：s = "(()"
+输出：2
+解释：最长有效括号子串是 "()"
+
+示例 2：
+输入：s = ")()())"
+输出：4
+解释：最长有效括号子串是 "()()"
+
+示例 3：
+输入：s = ""
+输出：0
+
+提示：
+0 <= s.length <= 3 * 104
+s[i] 为 '(' 或 ')'
+```
+
+## 本人题解
+
+```TypeScript
+function longestValidParentheses(s: string): number {
+  let stacks: number[] = [], pairs: number[][] = []
+  s.split('').forEach((char, index) => {
+    if (char === '(') {
+      stacks.push(index)
+    } else {
+      if (stacks.length) {
+        const lastStack = stacks.pop()!;
+        mergePairs(pairs, [lastStack, index, 2]);
+      }
+    }
+  });
+  return pairs.reduce((max, pair) => Math.max(max, pair[2]), 0);
+};
+
+function mergePairs(pairs: number[][], newPair: number[]) {
+  let lastPair = pairs[pairs.length - 1];
+  // ()() 
+  if (lastPair?.[1] === newPair[0] - 1) {
+    lastPair = pairs.pop()!;
+    lastPair[1] = newPair[1];
+    lastPair[2] += newPair[2]
+    mergePairs(pairs, lastPair);
+    // (())
+  } else if (lastPair?.[1] === newPair[1] - 1) {
+    lastPair = pairs.pop()!;
+    lastPair[0] = newPair[0];
+    lastPair[1] = newPair[1];
+    lastPair[2] += newPair[2]
+    mergePairs(pairs, lastPair);
+  } else {
+    pairs.push(newPair);
+  }
+}
+```
+
+## 分析
+
+找到匹配括号的左右index，然后和前一个匹配的做merge，合并后继续和前一个匹配的做merge，直到没有匹配的为止。

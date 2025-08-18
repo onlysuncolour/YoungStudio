@@ -68,6 +68,31 @@ var firstMissingPositive = function(nums) {
 };
 ```
 
+第三次 2025-8-18
+```TypeScript
+function firstMissingPositive(nums: number[]): number {
+  for (let i = 0; i < nums.length; i++) {
+    if (nums[i] > 0 && nums[i] !== i + 1 && nums[i] <= nums.length) {
+      putToRightPosition(nums, nums[i]);
+    }
+  }
+  for (let i = 0; i < nums.length; i++) {
+    if (nums[i] !== i + 1) {
+      return i + 1;
+    }
+  }
+  return nums.length + 1;
+};
+
+function putToRightPosition(nums: number[], value: number) {
+  const nextValue = nums[value - 1] || 0;
+  nums[value - 1] = value
+  if (nextValue > 0 && nextValue <= nums.length && nextValue !== nums[nextValue - 1]) {
+    putToRightPosition(nums, nextValue);
+  }
+}
+```
+
 ## 分析
 
 忘了。以后再补
