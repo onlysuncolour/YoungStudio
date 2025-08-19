@@ -1,0 +1,122 @@
+---
+title: "物块放置查询"
+date: "2025-08-18"
+spoiler: "3161 困难"
+---
+
+[leetcode-物块放置查询](https://leetcode.cn/problems/block-placement-queries/description/)
+
+## 题目描述
+
+```text
+有一条无限长的数轴，原点在 0 处，沿着 x 轴 正 方向无限延伸。
+给你一个二维数组 queries ，它包含两种操作：
+操作类型 1 ：queries[i] = [1, x] 。在距离原点 x 处建一个障碍物。数据保证当操作执行的时候，位置 x 处 没有 任何障碍物。
+操作类型 2 ：queries[i] = [2, x, sz] 。判断在数轴范围 [0, x] 内是否可以放置一个长度为 sz 的物块，这个物块需要 完全 放置在范围 [0, x] 内。如果物块与任何障碍物有重合，那么这个物块 不能 被放置，但物块可以与障碍物刚好接触。注意，你只是进行查询，并 不是 真的放置这个物块。每个查询都是相互独立的。
+请你返回一个 boolean 数组results ，如果第 i 个操作类型 2 的操作你可以放置物块，那么 results[i] 为 true ，否则为 false 。
+
+
+示例 1：
+输入：queries = [[1,2],[2,3,3],[2,3,1],[2,2,2]]
+输出：[false,true,true]
+解释：
+查询 0 ，在 x = 2 处放置一个障碍物。在 x = 3 之前任何大小不超过 2 的物块都可以被放置。
+
+示例 2：
+输入：queries = [[1,7],[2,7,6],[1,2],[2,7,5],[2,7,6]]
+输出：[true,true,false]
+解释：
+查询 0 在 x = 7 处放置一个障碍物。在 x = 7 之前任何大小不超过 7 的物块都可以被放置。
+查询 2 在 x = 2 处放置一个障碍物。现在，在 x = 7 之前任何大小不超过 5 的物块可以被放置，x = 2 之前任何大小不超过 2 的物块可以被放置。
+ 
+
+提示：
+1 <= queries.length <= 15 * 104
+2 <= queries[i].length <= 3
+1 <= queries[i][0] <= 2
+1 <= x, sz <= min(5 * 104, 3 * queries.length)
+输入保证操作 1 中，x 处不会有障碍物。
+输入保证至少有一个操作类型 2 。
+```
+
+## 本人题解
+超出时间限制   738 / 744 个通过的测试用例
+```TypeScript
+type TNode = {
+  x: number;
+  next: TNode | undefined;
+}
+function getResults(queries: number[][]): boolean[] {
+  const node: TNode = {
+    x: 0,
+    next: undefined
+  }
+  const results:boolean[] = [];
+  queries.forEach(query => {
+    const [type, pos, size] = query;
+    if (type === 1) {
+      insertNode(node, pos);
+    } else if (type === 2) {
+      results.push(sizeInSpace(node, pos, size));
+    }
+  })
+  return results;
+};
+
+function insertNode(node: TNode, pos: number) {
+  let curNode = node.next, preNode = node, rmSpace = 0
+  while (true) {
+    if (!curNode) {
+      const newNode: TNode = {
+        x: pos,
+        next: undefined
+      }
+      preNode.next = newNode;
+    } else if (curNode.x > pos) {
+      const newNode: TNode = {
+        x: pos,
+        next: curNode
+      }
+      preNode.next = newNode;
+      rmSpace = curNode.x - preNode.x;
+    } else {
+      preNode = curNode;
+      curNode = curNode.next;
+      continue;
+    };
+    break;
+  }
+}
+
+function sizeInSpace(node: TNode, maxPos: number, size: number): boolean {
+  let curNode = node.next, preNode = node;
+  while (true) {
+    if (preNode.x > maxPos) {
+      return false
+    }
+    let space;
+    if (!curNode || curNode.x > maxPos) {
+      space = maxPos - preNode.x
+    } else {
+      space = curNode.x - preNode.x;
+    };
+    if (space >= size) {
+      return true;
+    }
+    if (!curNode) {
+      return false
+    }
+    preNode = curNode;
+    curNode = curNode.next;
+    continue;
+  }
+  return false;
+}
+```
+
+## 分析
+
+1. 构建一个链表
+2. 遇到障碍物时，将障碍物插入链表
+3. 遇到查询时，开始从0遍历链表。查找障碍物之间、障碍物与限定范围之间的范围。
+4. 最后本人题解又又又超出时间限制
